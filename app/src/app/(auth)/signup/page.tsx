@@ -6,11 +6,13 @@ import { useRouter } from "next/navigation";
 import { Logo } from "@/components/Logo";
 import { AnimatedBackground } from "@/components/AnimatedBackground";
 import { ArrowRight, Check, Building2, User } from "lucide-react";
+import { createClient } from "@/lib/supabase/client";
 
 type PlanType = "individual" | "brokerage";
 
 export default function SignupPage() {
   const router = useRouter();
+  const supabase = createClient();
   const [step, setStep] = useState(1);
   const [planType, setPlanType] = useState<PlanType>("individual");
   const [formData, setFormData] = useState({
@@ -24,20 +26,73 @@ export default function SignupPage() {
     agentCount: 5,
   });
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState("");
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
+    setError("");
+  };
+
+  const validateStep = () => {
+    if (step === 2) {
+      if (formData.password !== formData.confirmPassword) {
+        setError("Passwords do not match");
+        return false;
+      }
+      if (formData.password.length < 8) {
+        setError("Password must be at least 8 characters");
+        return false;
+      }
+    }
+    return true;
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (!validateStep()) return;
+
     if (step < 3) {
       setStep(step + 1);
     } else {
       setIsLoading(true);
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 1500));
+      setError("");
+
+      // Sign up with Supabase
+      const { error: signUpError } = await supabase.auth.signUp({
+        email: formData.email,
+        password: formData.password,
+        options: {
+          data: {
+            full_name: `${formData.firstName} ${formData.lastName}`,
+            phone: formData.phone,
+            plan_type: planType,
+            brokerage: planType === "brokerage" ? formData.brokerageName : null,
+          },
+          emailRedirectTo: `${window.location.origin}/auth/callback`,
+        },
+      });
+
+      if (signUpError) {
+        setError(signUpError.message);
+        setIsLoading(false);
+        return;
+      }
+
+      // Update profile with additional info
+      const { data: { user } } = await supabase.auth.getUser();
+
+      if (user) {
+        await supabase.from("profiles").update({
+          full_name: `${formData.firstName} ${formData.lastName}`,
+          phone: formData.phone,
+          plan_type: planType,
+          brokerage: planType === "brokerage" ? formData.brokerageName : null,
+        }).eq("id", user.id);
+      }
+
       router.push("/dashboard");
+      router.refresh();
     }
   };
 
@@ -95,6 +150,12 @@ export default function SignupPage() {
           {/* Form Card */}
           <div className="glass-card rounded-2xl p-8">
             <form onSubmit={handleSubmit}>
+              {error && (
+                <div className="mb-6 p-3 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 text-sm">
+                  {error}
+                </div>
+              )}
+
               {/* Step 1: Choose Plan */}
               {step === 1 && (
                 <div className="space-y-6">
@@ -186,7 +247,7 @@ export default function SignupPage() {
                       value={formData.email}
                       onChange={handleInputChange}
                       required
-                      className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder-slate-500 transition-all"
+                      className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder-slate-500 transition-all focus:border-sky-500 focus:ring-1 focus:ring-sky-500 outline-none"
                       placeholder="you@example.com"
                     />
                   </div>
@@ -202,7 +263,7 @@ export default function SignupPage() {
                       onChange={handleInputChange}
                       required
                       minLength={8}
-                      className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder-slate-500 transition-all"
+                      className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder-slate-500 transition-all focus:border-sky-500 focus:ring-1 focus:ring-sky-500 outline-none"
                       placeholder="Min. 8 characters"
                     />
                   </div>
@@ -217,7 +278,7 @@ export default function SignupPage() {
                       value={formData.confirmPassword}
                       onChange={handleInputChange}
                       required
-                      className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder-slate-500 transition-all"
+                      className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder-slate-500 transition-all focus:border-sky-500 focus:ring-1 focus:ring-sky-500 outline-none"
                       placeholder="Re-enter your password"
                     />
                   </div>
@@ -243,7 +304,7 @@ export default function SignupPage() {
                         value={formData.firstName}
                         onChange={handleInputChange}
                         required
-                        className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder-slate-500 transition-all"
+                        className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder-slate-500 transition-all focus:border-sky-500 focus:ring-1 focus:ring-sky-500 outline-none"
                         placeholder="John"
                       />
                     </div>
@@ -257,7 +318,7 @@ export default function SignupPage() {
                         value={formData.lastName}
                         onChange={handleInputChange}
                         required
-                        className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder-slate-500 transition-all"
+                        className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder-slate-500 transition-all focus:border-sky-500 focus:ring-1 focus:ring-sky-500 outline-none"
                         placeholder="Doe"
                       />
                     </div>
@@ -272,7 +333,7 @@ export default function SignupPage() {
                       name="phone"
                       value={formData.phone}
                       onChange={handleInputChange}
-                      className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder-slate-500 transition-all"
+                      className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder-slate-500 transition-all focus:border-sky-500 focus:ring-1 focus:ring-sky-500 outline-none"
                       placeholder="(555) 123-4567"
                     />
                   </div>
@@ -289,7 +350,7 @@ export default function SignupPage() {
                           value={formData.brokerageName}
                           onChange={handleInputChange}
                           required
-                          className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder-slate-500 transition-all"
+                          className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder-slate-500 transition-all focus:border-sky-500 focus:ring-1 focus:ring-sky-500 outline-none"
                           placeholder="ABC Realty"
                         />
                       </div>
@@ -304,7 +365,7 @@ export default function SignupPage() {
                           onChange={handleInputChange}
                           min={5}
                           required
-                          className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder-slate-500 transition-all"
+                          className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder-slate-500 transition-all focus:border-sky-500 focus:ring-1 focus:ring-sky-500 outline-none"
                         />
                         <p className="text-xs text-slate-500 mt-1">Minimum 5 agents required</p>
                       </div>

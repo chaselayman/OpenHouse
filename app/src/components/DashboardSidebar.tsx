@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { Logo } from "./Logo";
 import {
   LayoutDashboard,
@@ -15,6 +15,8 @@ import {
   ChevronRight,
 } from "lucide-react";
 import { useState } from "react";
+import { useProfile } from "@/lib/hooks/useProfile";
+import { createClient } from "@/lib/supabase/client";
 
 const navItems = [
   { href: "/dashboard", icon: LayoutDashboard, label: "Dashboard" },
@@ -30,7 +32,26 @@ const bottomNavItems = [
 
 export function DashboardSidebar() {
   const pathname = usePathname();
+  const router = useRouter();
   const [collapsed, setCollapsed] = useState(false);
+  const { profile } = useProfile();
+  const supabase = createClient();
+
+  const handleSignOut = async () => {
+    await supabase.auth.signOut();
+    router.push("/login");
+    router.refresh();
+  };
+
+  // Get initials from profile name
+  const getInitials = () => {
+    if (!profile?.full_name) return "??";
+    const parts = profile.full_name.split(" ");
+    if (parts.length >= 2) {
+      return `${parts[0][0]}${parts[1][0]}`.toUpperCase();
+    }
+    return parts[0].substring(0, 2).toUpperCase();
+  };
 
   return (
     <aside
@@ -52,7 +73,7 @@ export function DashboardSidebar() {
       {/* Navigation */}
       <nav className="flex-1 py-6 px-3 space-y-1">
         {navItems.map((item) => {
-          const isActive = pathname === item.href;
+          const isActive = pathname === item.href || pathname.startsWith(item.href + "/");
           return (
             <Link
               key={item.href}
@@ -87,6 +108,7 @@ export function DashboardSidebar() {
           </Link>
         ))}
         <button
+          onClick={handleSignOut}
           className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-400 hover:text-red-400 hover:bg-red-500/10 transition-all ${
             collapsed ? "justify-center" : ""
           }`}
@@ -113,12 +135,16 @@ export function DashboardSidebar() {
       <div className={`p-4 border-t border-white/5 ${collapsed ? "px-2" : ""}`}>
         <div className={`flex items-center gap-3 ${collapsed ? "justify-center" : ""}`}>
           <div className="w-10 h-10 rounded-full bg-gradient-to-br from-sky-500 to-emerald-500 flex items-center justify-center text-white font-bold text-sm shrink-0">
-            JD
+            {getInitials()}
           </div>
           {!collapsed && (
             <div className="flex-1 min-w-0">
-              <div className="text-sm font-medium text-white truncate">John Doe</div>
-              <div className="text-xs text-slate-500 truncate">john@realty.com</div>
+              <div className="text-sm font-medium text-white truncate">
+                {profile?.full_name || "Loading..."}
+              </div>
+              <div className="text-xs text-slate-500 truncate">
+                {profile?.email || ""}
+              </div>
             </div>
           )}
         </div>

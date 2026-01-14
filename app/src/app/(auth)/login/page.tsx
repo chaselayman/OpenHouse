@@ -6,9 +6,11 @@ import { useRouter } from "next/navigation";
 import { Logo } from "@/components/Logo";
 import { AnimatedBackground } from "@/components/AnimatedBackground";
 import { ArrowRight } from "lucide-react";
+import { createClient } from "@/lib/supabase/client";
 
 export default function LoginPage() {
   const router = useRouter();
+  const supabase = createClient();
   const [formData, setFormData] = useState({
     email: "",
     password: "",
@@ -26,11 +28,37 @@ export default function LoginPage() {
     setIsLoading(true);
     setError("");
 
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 1000));
+    const { error } = await supabase.auth.signInWithPassword({
+      email: formData.email,
+      password: formData.password,
+    });
 
-    // Demo: accept any credentials
+    if (error) {
+      setError(error.message);
+      setIsLoading(false);
+      return;
+    }
+
     router.push("/dashboard");
+    router.refresh();
+  };
+
+  const handleGoogleSignIn = async () => {
+    await supabase.auth.signInWithOAuth({
+      provider: "google",
+      options: {
+        redirectTo: `${window.location.origin}/auth/callback`,
+      },
+    });
+  };
+
+  const handleGithubSignIn = async () => {
+    await supabase.auth.signInWithOAuth({
+      provider: "github",
+      options: {
+        redirectTo: `${window.location.origin}/auth/callback`,
+      },
+    });
   };
 
   return (
@@ -82,7 +110,7 @@ export default function LoginPage() {
                   value={formData.email}
                   onChange={handleInputChange}
                   required
-                  className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder-slate-500 transition-all"
+                  className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder-slate-500 transition-all focus:border-sky-500 focus:ring-1 focus:ring-sky-500 outline-none"
                   placeholder="you@example.com"
                 />
               </div>
@@ -105,7 +133,7 @@ export default function LoginPage() {
                   value={formData.password}
                   onChange={handleInputChange}
                   required
-                  className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder-slate-500 transition-all"
+                  className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder-slate-500 transition-all focus:border-sky-500 focus:ring-1 focus:ring-sky-500 outline-none"
                   placeholder="Enter your password"
                 />
               </div>
@@ -139,6 +167,7 @@ export default function LoginPage() {
             <div className="grid grid-cols-2 gap-4">
               <button
                 type="button"
+                onClick={handleGoogleSignIn}
                 className="flex items-center justify-center gap-2 py-3 rounded-xl border border-white/10 bg-white/5 text-white font-medium hover:bg-white/10 transition-colors"
               >
                 <svg className="w-5 h-5" viewBox="0 0 24 24">
@@ -163,6 +192,7 @@ export default function LoginPage() {
               </button>
               <button
                 type="button"
+                onClick={handleGithubSignIn}
                 className="flex items-center justify-center gap-2 py-3 rounded-xl border border-white/10 bg-white/5 text-white font-medium hover:bg-white/10 transition-colors"
               >
                 <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
@@ -171,13 +201,6 @@ export default function LoginPage() {
                 GitHub
               </button>
             </div>
-          </div>
-
-          {/* Demo credentials hint */}
-          <div className="mt-6 p-4 rounded-xl bg-sky-500/10 border border-sky-500/20">
-            <p className="text-sm text-sky-400 text-center">
-              <strong>Demo:</strong> Enter any email/password to explore the dashboard
-            </p>
           </div>
         </div>
       </main>
