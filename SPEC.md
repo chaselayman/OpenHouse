@@ -262,26 +262,26 @@ All features ship in v1.0:
 | Starter | $50/mo | Up to 10 |
 | Growth | $100/mo | Up to 20 |
 | Pro | $150/mo | Up to 30 |
-| Unlimited | $120/mo | Unlimited |
 
 *Pricing scales at $50 per 10 additional active clients.*
 
 ### Brokerage Plans
 
-| Seats | Price per Seat | Monthly Total (min) |
-|-------|----------------|---------------------|
-| 5+ agents | $40/mo | $200/mo |
-| 10+ agents | $40/mo | $400/mo |
-| 25+ agents | $40/mo | $1,000/mo |
+| Tier | Price per Seat | Active Clients | Monthly Total (min 5 seats) |
+|------|----------------|----------------|------------------------------|
+| Starter | $40/mo | Up to 10 | $200/mo |
+| Growth | $80/mo | Up to 20 | $400/mo |
+| Pro | $120/mo | Up to 30 | $600/mo |
+| Unlimited | $120/mo | Unlimited | $600/mo |
 
-*Minimum 5 seats required for brokerage pricing. Same client tier scaling applies ($40 per 10 additional active clients per seat). Unlimited clients available at $96/mo per seat (20% brokerage discount).*
+*Minimum 5 seats required for brokerage pricing. Unlimited tier is exclusive to brokerages—a $30/seat savings vs. individual Pro tier pricing.*
 
 ### Pricing Rationale
 
 - **Accessible entry point:** $50/mo is significantly lower than competitors like CINC ($899+/mo) or kvCORE ($499+/mo), making it accessible to solo agents and new realtors
 - **Usage-based scaling:** Agents only pay for what they use based on active client count
-- **Brokerage incentive:** 20% discount encourages team adoption and reduces churn
-- **Unlimited ceiling:** $120/mo individual ($96/mo brokerage) caps costs for high-volume agents
+- **Brokerage incentive:** $10/seat discount on base tiers + exclusive access to Unlimited tier encourages team adoption
+- **Unlimited exclusivity:** Only available to brokerages at $120/seat, incentivizing brokerage sign-ups over individual accounts
 
 ### Competitive Comparison
 
