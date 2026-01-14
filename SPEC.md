@@ -226,26 +226,20 @@ A fully automated pipeline where agents simply provide a client's email and pref
 
 ---
 
-## MVP Scope
+## MVP Scope (Full Feature Launch)
 
-**Phase 1 - Core Pipeline:**
-1. Manual MLS data import (CSV/JSON) - defer live scraping
-2. Image analysis for red flags
-3. AI property descriptions
-4. Email delivery to clients
-5. Simple booking link (to ShowingTime directly, not integrated)
+All features ship in v1.0:
 
-**Phase 2 - Full Automation:**
-1. Live MLS integration
-2. ShowingTime API integration
-3. In-app booking flow
-4. Agent dashboard
-
-**Phase 3 - Enhancement:**
-1. Client preference learning
-2. Automated follow-ups
-3. Market analysis
-4. Mobile app
+1. Live MLS integration with scraping/API access
+2. AI image analysis for red flag detection
+3. AI-generated personalized property descriptions
+4. Full ShowingTime API integration for automated booking
+5. Client portal with email delivery and one-click booking
+6. Agent dashboard
+7. In-app booking flow with calendar sync
+8. Client preference learning
+9. Automated follow-ups
+10. Market analysis tools
 
 ---
 
@@ -259,11 +253,74 @@ A fully automated pipeline where agents simply provide a client's email and pref
 
 ---
 
+## Pricing
+
+### Individual Agents
+
+| Tier | Price | Active Clients |
+|------|-------|----------------|
+| Starter | $50/mo | Up to 10 |
+| Growth | $100/mo | Up to 20 |
+| Pro | $150/mo | Up to 30 |
+| Unlimited | $120/mo | Unlimited |
+
+*Pricing scales at $50 per 10 additional active clients.*
+
+### Brokerage Plans
+
+| Seats | Price per Seat | Monthly Total (min) |
+|-------|----------------|---------------------|
+| 5+ agents | $40/mo | $200/mo |
+| 10+ agents | $40/mo | $400/mo |
+| 25+ agents | $40/mo | $1,000/mo |
+
+*Minimum 5 seats required for brokerage pricing. Same client tier scaling applies ($40 per 10 additional active clients per seat). Unlimited clients available at $96/mo per seat (20% brokerage discount).*
+
+### Pricing Rationale
+
+- **Accessible entry point:** $50/mo is significantly lower than competitors like CINC ($899+/mo) or kvCORE ($499+/mo), making it accessible to solo agents and new realtors
+- **Usage-based scaling:** Agents only pay for what they use based on active client count
+- **Brokerage incentive:** 20% discount encourages team adoption and reduces churn
+- **Unlimited ceiling:** $120/mo individual ($96/mo brokerage) caps costs for high-volume agents
+
+### Competitive Comparison
+
+| Product | Starting Price | What It Does |
+|---------|----------------|--------------|
+| **OpenHouse** | **$50/mo** | **Full automation: MLS → AI analysis → booking** |
+| ShowingTime | $15-45/mo | Booking only |
+| Market Leader | $189/mo | Lead gen + CRM |
+| kvCORE | $499+/mo | Full platform |
+| CINC | $899+/mo | AI + lead gen |
+| Ylopo | $500+/mo | AI marketing |
+
+---
+
+## Platform
+
+### Delivery Method: Responsive Web Application
+
+OpenHouse will be built as a responsive web application (mobile-friendly) using Next.js, accessible from any device with a web browser.
+
+**Why Web App:**
+- Maximum reach across all devices and browsers
+- Single codebase for faster development and iteration
+- No app store approval delays or gatekeepers
+- Instant updates without user action
+- Easy to add PWA (Progressive Web App) or native mobile wrapper later
+- Real estate agents work from phones constantly—mobile-responsive is essential
+
+**Not Chrome Extension:** Too limiting (desktop Chrome only), can't handle complex workflows, harder for agents to discover.
+
+**Not Native Mobile App (initially):** Slower development, dual codebases (iOS/Android), app store friction. Can be added later if demand warrants.
+
+---
+
 ## Open Questions
 
 1. Which MLS system(s) to target first? (Regional consideration)
 2. ShowingTime API access - is your friend already a ShowingTime user?
-3. Pricing model - per client, per showing, monthly subscription?
+3. ~~Pricing model - per client, per showing, monthly subscription?~~ ✓ Resolved
 4. Compliance - any real estate regulations around automated client communication?
 5. What specific red flags are most important to detect?
 6. Should clients be able to request additional properties or is it one-way?
@@ -278,3 +335,26 @@ A fully automated pipeline where agents simply provide a client's email and pref
 - **Zillow/Redfin** - Consumer-facing, not agent tools
 
 **OpenHouse differentiator:** End-to-end automation from search to showing, with AI-powered quality filtering.
+
+---
+
+## Research Sources
+
+### Competitor Pricing & Features
+- [HousingWire - Best Real Estate Software 2025](https://www.housingwire.com/articles/real-estate-software/)
+- [The Close - Ylopo Review & Pricing](https://theclose.com/ylopo-reviews/)
+- [The Close - Real Estate Software Pricing](https://theclose.com/real-estate-software/)
+- [InboundREM - kvCORE Review 2025](https://inboundrem.com/kvcore-kunversion-pros-cons/)
+- [Ylopo - CINC CRM Review](https://www.ylopo.com/blog/cinc-crm)
+- [ShowingTime Official](https://showingtime.com/)
+- [GetApp - ShowingTime Pricing](https://www.getapp.com/real-estate-property-software/a/showingtime-appointment-center/pricing/)
+
+### MLS & Technical
+- [Biz4Group - MLS Software Development Guide 2025](https://www.biz4group.com/blog/mls-software-development)
+- [Clockwise - Real Estate MLS Software Development](https://clockwise.software/blog/custom-mls-software-development-guide/)
+- [ShowingTime+ MLS Solutions](https://showingtimeplus.com/mls-and-associations)
+
+### Platform & Delivery Research
+- [Constellation1 - CRM with Mobile App](https://constellation1.com/front-office/crm-with-mobile-app/)
+- [Rechat - Mobile-First CRM Platform](https://rechat.com/)
+- [BinaryFolks - Chrome Extension for SaaS](https://binaryfolks.com/blog/chrome-extension-development-can-be-the-best-investment-for-your-saas-product/)
