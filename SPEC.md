@@ -255,33 +255,44 @@ All features ship in v1.0:
 
 ## Pricing
 
-### Individual Agents
+### Individual Agent Plan
 
-| Tier | Price | Active Clients |
-|------|-------|----------------|
-| Starter | $50/mo | Up to 10 |
-| Growth | $100/mo | Up to 20 |
-| Pro | $150/mo | Up to 30 |
+| Component | Price |
+|-----------|-------|
+| Base | $50/mo (includes 5 clients) |
+| Additional clients | +$5/client/mo |
+| Unlimited clients | $250/mo flat |
 
-*Pricing scales at $50 per 10 additional active clients.*
+**Examples:**
+- 5 clients = $50/mo
+- 10 clients = $50 + (5 × $5) = $75/mo
+- 20 clients = $50 + (15 × $5) = $125/mo
+- Unlimited = $250/mo
 
-### Brokerage Plans
+### Brokerage Plan
 
-| Tier | Price per Seat | Active Clients | Monthly Total (min 5 seats) |
-|------|----------------|----------------|------------------------------|
-| Starter | $40/mo | Up to 10 | $200/mo |
-| Growth | $80/mo | Up to 20 | $400/mo |
-| Pro | $120/mo | Up to 30 | $600/mo |
-| Unlimited | $120/mo | Unlimited | $600/mo |
+| Component | Price |
+|-----------|-------|
+| Base per agent | $40/mo (includes 5 clients) |
+| Additional clients | +$4/client/mo per agent |
+| Unlimited clients | $200/mo per agent |
+| Minimum seats | 5 agents |
 
-*Minimum 5 seats required for brokerage pricing. Unlimited tier is exclusive to brokerages—a $30/seat savings vs. individual Pro tier pricing.*
+**Examples (5-agent brokerage):**
+- 5 clients each = 5 × $40 = $200/mo
+- 10 clients each = 5 × ($40 + 5×$4) = 5 × $60 = $300/mo
+- Unlimited each = 5 × $200 = $1,000/mo
 
-### Pricing Rationale
+### Pricing Strategy
 
-- **Accessible entry point:** $50/mo is significantly lower than competitors like CINC ($899+/mo) or kvCORE ($499+/mo), making it accessible to solo agents and new realtors
-- **Usage-based scaling:** Agents only pay for what they use based on active client count
-- **Brokerage incentive:** $10/seat discount on base tiers + exclusive access to Unlimited tier encourages team adoption
-- **Unlimited exclusivity:** Only available to brokerages at $120/seat, incentivizing brokerage sign-ups over individual accounts
+| Benefit | How It Works |
+|---------|--------------|
+| **Low barrier to entry** | $50/mo for individual, $200/mo for brokerage—far below competitors |
+| **Granular scaling** | Pay per client ($5 or $4), not locked into tiers |
+| **Account sharing prevention** | 5-client base is low enough that teams can't share one account effectively |
+| **Clear upgrade path** | As agents grow, natural progression to more clients or unlimited |
+| **Brokerage incentive** | 20% discount on base ($40 vs $50) and per-client ($4 vs $5) pricing |
+| **Unlimited ceiling** | $250 individual / $200 brokerage caps costs for high-volume agents |
 
 ### Competitive Comparison
 
