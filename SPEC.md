@@ -259,46 +259,60 @@ All features ship in v1.0:
 
 | Component | Price |
 |-----------|-------|
-| Base | $50/mo (includes 5 clients) |
-| Additional clients | +$5/client/mo |
-| Unlimited clients | $250/mo flat |
+| Base | $49.99/mo (includes 5 clients) |
+| Additional clients | +$4.99/client/mo |
+| Unlimited clients | $299/mo flat |
 
 **Examples:**
-- 5 clients = $50/mo
-- 10 clients = $50 + (5 × $5) = $75/mo
-- 20 clients = $50 + (15 × $5) = $125/mo
-- Unlimited = $250/mo
+- 5 clients = $49.99/mo
+- 10 clients = $49.99 + (5 × $4.99) = $74.94/mo
+- 20 clients = $49.99 + (15 × $4.99) = $124.84/mo
+- Unlimited = $299/mo
 
 ### Brokerage Plan
 
 | Component | Price |
 |-----------|-------|
-| Base per agent | $40/mo (includes 5 clients) |
-| Additional clients | +$4/client/mo per agent |
-| Unlimited clients | $200/mo per agent |
+| Base per agent | $39.99/mo (includes 5 clients) |
+| Additional clients | +$3.99/client/mo per agent |
+| Unlimited clients | $249/mo per agent |
 | Minimum seats | 5 agents |
 
 **Examples (5-agent brokerage):**
-- 5 clients each = 5 × $40 = $200/mo
-- 10 clients each = 5 × ($40 + 5×$4) = 5 × $60 = $300/mo
-- Unlimited each = 5 × $200 = $1,000/mo
+- 5 clients each = 5 × $39.99 = $199.95/mo
+- 10 clients each = 5 × ($39.99 + 5×$3.99) = 5 × $59.94 = $299.70/mo
+- Unlimited each = 5 × $249 = $1,245/mo
+
+### Account Restrictions (Anti-Sharing Enforcement)
+
+Each account is technically restricted to prevent multi-agent sharing:
+
+| Restriction | Individual | Brokerage (per seat) |
+|-------------|------------|----------------------|
+| ShowingTime logins | 1 | 1 per agent |
+| Calendar syncs | 1 | 1 per agent |
+| MLS credential sets | 1 | 1 per agent |
+| Concurrent sessions | 1 | 1 per agent |
+| Agent dashboard | Single view | Individual per agent |
+
+**Why this matters:** A brokerage trying to share one Individual Unlimited account ($299/mo) would be limited to 1 ShowingTime login, 1 calendar, and 1 concurrent session—making it operationally impossible for multiple agents to use effectively.
 
 ### Pricing Strategy
 
 | Benefit | How It Works |
 |---------|--------------|
-| **Low barrier to entry** | $50/mo for individual, $200/mo for brokerage—far below competitors |
-| **Granular scaling** | Pay per client ($5 or $4), not locked into tiers |
-| **Account sharing prevention** | 5-client base is low enough that teams can't share one account effectively |
+| **Low barrier to entry** | $49.99/mo for individual, $199.95/mo for brokerage—far below competitors |
+| **Granular scaling** | Pay per client ($4.99 or $3.99), not locked into tiers |
+| **Technical anti-sharing** | 1 ShowingTime login, 1 calendar, 1 session per account enforces proper seat purchases |
 | **Clear upgrade path** | As agents grow, natural progression to more clients or unlimited |
-| **Brokerage incentive** | 20% discount on base ($40 vs $50) and per-client ($4 vs $5) pricing |
-| **Unlimited ceiling** | $250 individual / $200 brokerage caps costs for high-volume agents |
+| **Brokerage incentive** | 20% discount on base + per-client pricing, plus $50 savings on unlimited ($249 vs $299) |
+| **Unlimited ceiling** | $299 individual / $249 brokerage caps costs for high-volume agents |
 
 ### Competitive Comparison
 
 | Product | Starting Price | What It Does |
 |---------|----------------|--------------|
-| **OpenHouse** | **$50/mo** | **Full automation: MLS → AI analysis → booking** |
+| **OpenHouse** | **$49.99/mo** | **Full automation: MLS → AI analysis → booking** |
 | ShowingTime | $15-45/mo | Booking only |
 | Market Leader | $189/mo | Lead gen + CRM |
 | kvCORE | $499+/mo | Full platform |
