@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import {
   Users,
   Home,
@@ -12,67 +13,145 @@ import {
   Plus,
   ArrowRight,
   Eye,
+  Loader2,
 } from "lucide-react";
 import Link from "next/link";
+import { createClient } from "@/lib/supabase/client";
+import type { Client, Property, Showing, Profile } from "@/lib/types/database";
 
-// Mock data
-const stats = [
-  { label: "Active Clients", value: "3", change: "+1", icon: Users, color: "sky" },
-  { label: "Properties Analyzed", value: "47", change: "+12", icon: Home, color: "emerald" },
-  { label: "Showings This Week", value: "8", change: "+3", icon: Calendar, color: "violet" },
-  { label: "Time Saved", value: "14h", change: "this month", icon: Clock, color: "amber" },
+const gradients = [
+  "from-pink-500 to-rose-500",
+  "from-sky-500 to-blue-500",
+  "from-emerald-500 to-green-500",
+  "from-violet-500 to-purple-500",
+  "from-amber-500 to-orange-500",
 ];
 
-const recentClients = [
-  { id: 1, name: "Sarah Jenkins", initials: "SJ", status: "active", properties: 12, showings: 3, gradient: "from-pink-500 to-rose-500" },
-  { id: 2, name: "Mike Kogan", initials: "MK", status: "searching", properties: 8, showings: 0, gradient: "from-sky-500 to-blue-500" },
-  { id: 3, name: "Lisa Chen", initials: "LC", status: "active", properties: 15, showings: 2, gradient: "from-emerald-500 to-green-500" },
-];
+function getInitials(name: string) {
+  const parts = name.split(" ");
+  if (parts.length >= 2) {
+    return `${parts[0][0]}${parts[1][0]}`.toUpperCase();
+  }
+  return name.substring(0, 2).toUpperCase();
+}
 
-const recentProperties = [
-  {
-    id: 1,
-    address: "2401 Eva St",
-    price: "$625,000",
-    match: 94,
-    client: "Sarah Jenkins",
-    image: "https://images.unsplash.com/photo-1600596542815-27b88e54e60d?auto=format&fit=crop&q=80&w=400",
-    status: "approved",
-  },
-  {
-    id: 2,
-    address: "1822 Maple Ave",
-    price: "$595,000",
-    match: 78,
-    client: "Sarah Jenkins",
-    image: "https://images.unsplash.com/photo-1574872956277-27038e23f044?auto=format&fit=crop&q=80&w=400",
-    status: "flagged",
-    flag: "Water damage detected",
-  },
-  {
-    id: 3,
-    address: "504 Riverside Dr",
-    price: "$699,000",
-    match: 88,
-    client: "Mike Kogan",
-    image: "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&q=80&w=400",
-    status: "pending",
-  },
-];
+function formatPrice(price: number | null) {
+  if (!price) return "N/A";
+  return new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency: "USD",
+    maximumFractionDigits: 0,
+  }).format(price);
+}
 
-const upcomingShowings = [
-  { id: 1, property: "2401 Eva St", client: "Sarah Jenkins", time: "Today, 2:00 PM" },
-  { id: 2, property: "504 Riverside Dr", client: "Mike Kogan", time: "Tomorrow, 10:30 AM" },
-  { id: 3, property: "789 Oak Lane", client: "Lisa Chen", time: "Thu, 3:00 PM" },
-];
+function formatShowingTime(date: string, time: string) {
+  const showingDate = new Date(`${date}T${time}`);
+  const today = new Date();
+  const tomorrow = new Date(today);
+  tomorrow.setDate(tomorrow.getDate() + 1);
+
+  const timeStr = showingDate.toLocaleTimeString("en-US", {
+    hour: "numeric",
+    minute: "2-digit",
+    hour12: true,
+  });
+
+  if (showingDate.toDateString() === today.toDateString()) {
+    return `Today, ${timeStr}`;
+  } else if (showingDate.toDateString() === tomorrow.toDateString()) {
+    return `Tomorrow, ${timeStr}`;
+  } else {
+    return `${showingDate.toLocaleDateString("en-US", { weekday: "short" })}, ${timeStr}`;
+  }
+}
 
 export default function DashboardPage() {
+  const supabase = createClient();
+  const [profile, setProfile] = useState<Profile | null>(null);
+  const [clients, setClients] = useState<Client[]>([]);
+  const [properties, setProperties] = useState<Property[]>([]);
+  const [showings, setShowings] = useState<(Showing & { client: Client; property: Property })[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    async function fetchData() {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      // Fetch profile
+      const { data: profileData } = await supabase
+        .from("profiles")
+        .select("*")
+        .eq("id", user.id)
+        .single();
+      setProfile(profileData);
+
+      // Fetch clients
+      const { data: clientsData } = await supabase
+        .from("clients")
+        .select("*")
+        .eq("agent_id", user.id)
+        .order("created_at", { ascending: false })
+        .limit(5);
+      setClients(clientsData || []);
+
+      // Fetch properties
+      const { data: propertiesData } = await supabase
+        .from("properties")
+        .select("*")
+        .eq("agent_id", user.id)
+        .order("created_at", { ascending: false })
+        .limit(5);
+      setProperties(propertiesData || []);
+
+      // Fetch upcoming showings with client and property info
+      const { data: showingsData } = await supabase
+        .from("showings")
+        .select(`
+          *,
+          client:clients(*),
+          property:properties(*)
+        `)
+        .eq("agent_id", user.id)
+        .gte("scheduled_date", new Date().toISOString().split("T")[0])
+        .order("scheduled_date", { ascending: true })
+        .order("scheduled_time", { ascending: true })
+        .limit(3);
+      setShowings(showingsData || []);
+
+      setIsLoading(false);
+    }
+
+    fetchData();
+  }, [supabase]);
+
+  const activeClients = clients.filter((c) => c.status === "active").length;
+  const analyzedProperties = properties.filter((p) => p.ai_score !== null).length;
+  const weekShowings = showings.length;
+
+  const stats = [
+    { label: "Active Clients", value: activeClients.toString(), change: `of ${clients.length}`, icon: Users, color: "sky" },
+    { label: "Properties", value: properties.length.toString(), change: `${analyzedProperties} analyzed`, icon: Home, color: "emerald" },
+    { label: "Upcoming Showings", value: weekShowings.toString(), change: "scheduled", icon: Calendar, color: "violet" },
+    { label: "Time Saved", value: `${clients.length * 4}h`, change: "estimated", icon: Clock, color: "amber" },
+  ];
+
+  const firstName = profile?.full_name?.split(" ")[0] || "there";
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-full">
+        <Loader2 className="w-8 h-8 animate-spin text-sky-400" />
+      </div>
+    );
+  }
+
   return (
     <div className="p-8">
       {/* Header */}
       <div className="flex items-center justify-between mb-8">
         <div>
-          <h1 className="text-2xl font-bold text-white mb-1">Welcome back, John</h1>
+          <h1 className="text-2xl font-bold text-white mb-1">Welcome back, {firstName}</h1>
           <p className="text-slate-400">Here&apos;s what&apos;s happening with your clients today.</p>
         </div>
         <Link
@@ -135,36 +214,52 @@ export default function DashboardPage() {
               View all <ArrowRight className="w-3 h-3" />
             </Link>
           </div>
-          <div className="space-y-3">
-            {recentClients.map((client) => (
+          {clients.length === 0 ? (
+            <div className="text-center py-8">
+              <Users className="w-12 h-12 text-slate-600 mx-auto mb-3" />
+              <p className="text-slate-400 text-sm mb-4">No clients yet</p>
               <Link
-                key={client.id}
-                href={`/clients/${client.id}`}
-                className="flex items-center gap-3 p-3 rounded-lg hover:bg-white/5 transition-colors"
+                href="/clients/new"
+                className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-white/10 text-white text-sm hover:bg-white/20 transition-colors"
               >
-                <div
-                  className={`w-10 h-10 rounded-full bg-gradient-to-br ${client.gradient} flex items-center justify-center text-white text-sm font-bold shadow-lg`}
-                >
-                  {client.initials}
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="text-sm font-medium text-white truncate">{client.name}</div>
-                  <div className="text-xs text-slate-500">
-                    {client.properties} properties • {client.showings} showings
-                  </div>
-                </div>
-                <div
-                  className={`text-xs px-2 py-1 rounded-full ${
-                    client.status === "active"
-                      ? "bg-emerald-500/10 text-emerald-400"
-                      : "bg-sky-500/10 text-sky-400"
-                  }`}
-                >
-                  {client.status === "active" ? "Active" : "Searching"}
-                </div>
+                <Plus className="w-4 h-4" />
+                Add your first client
               </Link>
-            ))}
-          </div>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {clients.map((client, index) => (
+                <Link
+                  key={client.id}
+                  href={`/clients/${client.id}`}
+                  className="flex items-center gap-3 p-3 rounded-lg hover:bg-white/5 transition-colors"
+                >
+                  <div
+                    className={`w-10 h-10 rounded-full bg-gradient-to-br ${gradients[index % gradients.length]} flex items-center justify-center text-white text-sm font-bold shadow-lg`}
+                  >
+                    {getInitials(client.full_name)}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="text-sm font-medium text-white truncate">{client.full_name}</div>
+                    <div className="text-xs text-slate-500">
+                      {client.locations?.join(", ") || "No locations set"}
+                    </div>
+                  </div>
+                  <div
+                    className={`text-xs px-2 py-1 rounded-full ${
+                      client.status === "active"
+                        ? "bg-emerald-500/10 text-emerald-400"
+                        : client.status === "inactive"
+                        ? "bg-slate-500/10 text-slate-400"
+                        : "bg-sky-500/10 text-sky-400"
+                    }`}
+                  >
+                    {client.status}
+                  </div>
+                </Link>
+              ))}
+            </div>
+          )}
         </div>
 
         {/* Recent Properties */}
@@ -175,58 +270,72 @@ export default function DashboardPage() {
               View all <ArrowRight className="w-3 h-3" />
             </Link>
           </div>
-          <div className="space-y-3">
-            {recentProperties.map((property) => (
-              <div
-                key={property.id}
-                className={`flex items-center gap-4 p-3 rounded-lg border transition-colors ${
-                  property.status === "flagged"
-                    ? "border-red-500/20 bg-red-500/5"
-                    : "border-white/5 hover:bg-white/5"
-                }`}
-              >
+          {properties.length === 0 ? (
+            <div className="text-center py-8">
+              <Home className="w-12 h-12 text-slate-600 mx-auto mb-3" />
+              <p className="text-slate-400 text-sm mb-2">No properties yet</p>
+              <p className="text-slate-500 text-xs">Properties will appear here once you add them or connect MLS</p>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {properties.map((property) => (
                 <div
-                  className="w-16 h-16 rounded-lg bg-cover bg-center shrink-0"
-                  style={{ backgroundImage: `url(${property.image})` }}
-                />
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 mb-1">
-                    <h3 className="text-sm font-medium text-white truncate">{property.address}</h3>
-                    {property.status === "approved" && (
-                      <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
-                    )}
-                    {property.status === "flagged" && (
-                      <AlertTriangle className="w-4 h-4 text-red-400 shrink-0" />
+                  key={property.id}
+                  className={`flex items-center gap-4 p-3 rounded-lg border transition-colors ${
+                    property.red_flags && property.red_flags.length > 0
+                      ? "border-red-500/20 bg-red-500/5"
+                      : "border-white/5 hover:bg-white/5"
+                  }`}
+                >
+                  <div
+                    className="w-16 h-16 rounded-lg bg-slate-800 bg-cover bg-center shrink-0 flex items-center justify-center"
+                    style={property.photos?.[0] ? { backgroundImage: `url(${property.photos[0]})` } : {}}
+                  >
+                    {!property.photos?.[0] && <Home className="w-6 h-6 text-slate-600" />}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 mb-1">
+                      <h3 className="text-sm font-medium text-white truncate">{property.address}</h3>
+                      {property.ai_score && property.ai_score >= 80 && (
+                        <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+                      )}
+                      {property.red_flags && property.red_flags.length > 0 && (
+                        <AlertTriangle className="w-4 h-4 text-red-400 shrink-0" />
+                      )}
+                    </div>
+                    <div className="text-xs text-slate-500 mb-1">
+                      {formatPrice(property.price)} • {property.beds} bed, {property.baths} bath
+                    </div>
+                    {property.red_flags && property.red_flags.length > 0 && (
+                      <div className="text-xs text-red-400 flex items-center gap-1">
+                        <Eye className="w-3 h-3" />
+                        {property.red_flags[0]}
+                      </div>
                     )}
                   </div>
-                  <div className="text-xs text-slate-500 mb-1">
-                    {property.price} • For {property.client}
-                  </div>
-                  {property.flag && (
-                    <div className="text-xs text-red-400 flex items-center gap-1">
-                      <Eye className="w-3 h-3" />
-                      {property.flag}
+                  {property.ai_score && (
+                    <div className="text-right shrink-0">
+                      <div
+                        className={`text-sm font-bold flex items-center gap-1 ${
+                          property.ai_score >= 90
+                            ? "text-emerald-400"
+                            : property.ai_score >= 80
+                            ? "text-sky-400"
+                            : property.ai_score >= 60
+                            ? "text-amber-400"
+                            : "text-red-400"
+                        }`}
+                      >
+                        <Sparkles className="w-3 h-3" />
+                        {property.ai_score}%
+                      </div>
+                      <div className="text-xs text-slate-500">AI score</div>
                     </div>
                   )}
                 </div>
-                <div className="text-right shrink-0">
-                  <div
-                    className={`text-sm font-bold flex items-center gap-1 ${
-                      property.match >= 90
-                        ? "text-emerald-400"
-                        : property.match >= 80
-                        ? "text-sky-400"
-                        : "text-slate-400"
-                    }`}
-                  >
-                    <Sparkles className="w-3 h-3" />
-                    {property.match}%
-                  </div>
-                  <div className="text-xs text-slate-500">match</div>
-                </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
         </div>
       </div>
 
@@ -238,21 +347,30 @@ export default function DashboardPage() {
             View calendar <ArrowRight className="w-3 h-3" />
           </Link>
         </div>
-        <div className="grid md:grid-cols-3 gap-4">
-          {upcomingShowings.map((showing) => (
-            <div
-              key={showing.id}
-              className="p-4 rounded-lg border border-white/10 bg-white/5 hover:border-white/20 transition-colors"
-            >
-              <div className="flex items-center gap-2 mb-2">
-                <Calendar className="w-4 h-4 text-sky-400" />
-                <span className="text-sm font-medium text-white">{showing.time}</span>
+        {showings.length === 0 ? (
+          <div className="text-center py-6">
+            <Calendar className="w-10 h-10 text-slate-600 mx-auto mb-2" />
+            <p className="text-slate-400 text-sm">No upcoming showings</p>
+          </div>
+        ) : (
+          <div className="grid md:grid-cols-3 gap-4">
+            {showings.map((showing) => (
+              <div
+                key={showing.id}
+                className="p-4 rounded-lg border border-white/10 bg-white/5 hover:border-white/20 transition-colors"
+              >
+                <div className="flex items-center gap-2 mb-2">
+                  <Calendar className="w-4 h-4 text-sky-400" />
+                  <span className="text-sm font-medium text-white">
+                    {formatShowingTime(showing.scheduled_date, showing.scheduled_time)}
+                  </span>
+                </div>
+                <div className="text-sm text-slate-300 mb-1">{showing.property?.address}</div>
+                <div className="text-xs text-slate-500">with {showing.client?.full_name}</div>
               </div>
-              <div className="text-sm text-slate-300 mb-1">{showing.property}</div>
-              <div className="text-xs text-slate-500">with {showing.client}</div>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* AI Activity Banner */}
@@ -262,16 +380,18 @@ export default function DashboardPage() {
             <TrendingUp className="w-5 h-5 text-emerald-400" />
           </div>
           <div className="flex-1">
-            <h3 className="text-sm font-medium text-white mb-0.5">AI is working for you</h3>
+            <h3 className="text-sm font-medium text-white mb-0.5">AI is ready to work for you</h3>
             <p className="text-xs text-slate-400">
-              Currently analyzing 23 new listings for your clients. 4 potential matches found.
+              {properties.length > 0
+                ? `${analyzedProperties} of ${properties.length} properties analyzed. Add more properties to analyze.`
+                : "Add properties to get AI-powered analysis and red flag detection."}
             </p>
           </div>
           <Link
             href="/properties"
             className="px-4 py-2 rounded-lg bg-white/10 text-white text-sm font-medium hover:bg-white/20 transition-colors"
           >
-            Review Matches
+            {properties.length > 0 ? "Review Properties" : "Add Properties"}
           </Link>
         </div>
       </div>

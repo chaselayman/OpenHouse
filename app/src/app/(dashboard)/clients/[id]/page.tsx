@@ -1,15 +1,14 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import {
   ArrowLeft,
   Mail,
   Phone,
   Calendar,
   Home,
-  MapPin,
   DollarSign,
   Bed,
   Bath,
@@ -22,167 +21,179 @@ import {
   Trash2,
   Plus,
   ExternalLink,
-  MoreHorizontal,
+  Loader2,
+  Save,
+  X,
+  Link2,
+  Copy,
+  Check,
 } from "lucide-react";
+import { createClient } from "@/lib/supabase/client";
+import type { Client, Property, Showing } from "@/lib/types/database";
 
-// Mock client data
-const clientsData: Record<string, {
-  id: number;
-  name: string;
-  email: string;
-  phone: string;
-  initials: string;
-  gradient: string;
-  status: string;
-  createdAt: string;
-  lastActive: string;
-  criteria: {
-    priceMin: number;
-    priceMax: number;
-    beds: string;
-    baths: string;
-    locations: string[];
-    propertyTypes: string[];
-    mustHaves: string[];
-  };
-  timeline: string;
-  notes: string;
-}> = {
-  "1": {
-    id: 1,
-    name: "Sarah Jenkins",
-    email: "sarah.jenkins@email.com",
-    phone: "(512) 555-0123",
-    initials: "SJ",
-    gradient: "from-pink-500 to-rose-500",
-    status: "active",
-    createdAt: "Jan 5, 2025",
-    lastActive: "2 hours ago",
-    criteria: {
-      priceMin: 500000,
-      priceMax: 650000,
-      beds: "3+",
-      baths: "2+",
-      locations: ["South Austin", "East Austin"],
-      propertyTypes: ["Single Family"],
-      mustHaves: ["Home Office", "Large Backyard", "Updated Kitchen"],
-    },
-    timeline: "3-6 months",
-    notes: "First-time buyer. Works from home so needs dedicated office space. Has two kids, school district is important.",
-  },
-  "2": {
-    id: 2,
-    name: "Mike Kogan",
-    email: "mike.kogan@email.com",
-    phone: "(512) 555-0456",
-    initials: "MK",
-    gradient: "from-sky-500 to-blue-500",
-    status: "searching",
-    createdAt: "Jan 8, 2025",
-    lastActive: "1 day ago",
-    criteria: {
-      priceMin: 600000,
-      priceMax: 800000,
-      beds: "4+",
-      baths: "3+",
-      locations: ["North Austin", "Round Rock", "Cedar Park"],
-      propertyTypes: ["Single Family"],
-      mustHaves: ["Pool", "3-car Garage", "Large Lot"],
-    },
-    timeline: "1-3 months",
-    notes: "Relocating for work. Needs to be close to Domain area. Pre-approved for $850k.",
-  },
-  "3": {
-    id: 3,
-    name: "Lisa Chen",
-    email: "lisa.chen@email.com",
-    phone: "(512) 555-0789",
-    initials: "LC",
-    gradient: "from-emerald-500 to-green-500",
-    status: "active",
-    createdAt: "Dec 28, 2024",
-    lastActive: "5 hours ago",
-    criteria: {
-      priceMin: 350000,
-      priceMax: 500000,
-      beds: "2+",
-      baths: "2+",
-      locations: ["Downtown", "East Austin"],
-      propertyTypes: ["Condo", "Townhouse"],
-      mustHaves: ["Walkable", "Modern", "Parking"],
-    },
-    timeline: "ASAP",
-    notes: "Young professional. Wants to be close to downtown nightlife and restaurants. Works at tech company on Congress.",
-  },
-};
-
-const propertiesData = [
-  {
-    id: 1,
-    clientId: 1,
-    address: "2401 Eva St",
-    price: 625000,
-    beds: 3,
-    baths: 2,
-    match: 94,
-    status: "approved",
-    image: "https://images.unsplash.com/photo-1600596542815-27b88e54e60d?auto=format&fit=crop&q=80&w=400",
-  },
-  {
-    id: 2,
-    clientId: 1,
-    address: "1822 Maple Ave",
-    price: 595000,
-    beds: 3,
-    baths: 2,
-    match: 78,
-    status: "flagged",
-    image: "https://images.unsplash.com/photo-1574872956277-27038e23f044?auto=format&fit=crop&q=80&w=400",
-  },
-  {
-    id: 6,
-    clientId: 1,
-    address: "156 Sunset View",
-    price: 825000,
-    beds: 4,
-    baths: 3.5,
-    match: 85,
-    status: "sent",
-    image: "https://images.unsplash.com/photo-1600585154526-990dced4db0d?auto=format&fit=crop&q=80&w=400",
-  },
+const gradients = [
+  "from-pink-500 to-rose-500",
+  "from-sky-500 to-blue-500",
+  "from-emerald-500 to-green-500",
+  "from-violet-500 to-purple-500",
+  "from-amber-500 to-orange-500",
 ];
 
-const showingsData = [
-  {
-    id: 1,
-    clientId: 1,
-    property: "2401 Eva St",
-    date: "Today",
-    time: "2:00 PM",
-    status: "confirmed",
-  },
-  {
-    id: 2,
-    clientId: 1,
-    property: "156 Sunset View",
-    date: "Tomorrow",
-    time: "10:30 AM",
-    status: "pending",
-  },
-  {
-    id: 3,
-    clientId: 1,
-    property: "789 Oak Lane",
-    date: "Thu, Jan 16",
-    time: "3:00 PM",
-    status: "confirmed",
-  },
-];
+function getInitials(name: string) {
+  const parts = name.split(" ");
+  if (parts.length >= 2) {
+    return `${parts[0][0]}${parts[1][0]}`.toUpperCase();
+  }
+  return name.substring(0, 2).toUpperCase();
+}
+
+function formatPrice(price: number | null) {
+  if (!price) return "Not set";
+  return new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency: "USD",
+    maximumFractionDigits: 0,
+  }).format(price);
+}
+
+function formatDate(dateString: string) {
+  return new Date(dateString).toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  });
+}
+
+function getTimeAgo(dateString: string) {
+  const date = new Date(dateString);
+  const now = new Date();
+  const diffMs = now.getTime() - date.getTime();
+  const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+
+  if (diffDays === 0) return "Today";
+  if (diffDays === 1) return "Yesterday";
+  if (diffDays < 7) return `${diffDays} days ago`;
+  if (diffDays < 30) return `${Math.floor(diffDays / 7)} weeks ago`;
+  return `${Math.floor(diffDays / 30)} months ago`;
+}
 
 export default function ClientDetailPage() {
   const params = useParams();
+  const router = useRouter();
+  const supabase = createClient();
   const clientId = params.id as string;
-  const client = clientsData[clientId];
+
+  const [client, setClient] = useState<Client | null>(null);
+  const [properties, setProperties] = useState<Property[]>([]);
+  const [showings, setShowings] = useState<(Showing & { property: Property })[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isEditing, setIsEditing] = useState(false);
+  const [editForm, setEditForm] = useState<Partial<Client>>({});
+  const [copiedLink, setCopiedLink] = useState(false);
+
+  const getPortalLink = () => {
+    if (typeof window === "undefined") return "";
+    return `${window.location.origin}/p/${clientId}`;
+  };
+
+  const copyPortalLink = async () => {
+    const link = getPortalLink();
+    await navigator.clipboard.writeText(link);
+    setCopiedLink(true);
+    setTimeout(() => setCopiedLink(false), 2000);
+  };
+
+  useEffect(() => {
+    async function fetchData() {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      // Fetch client
+      const { data: clientData, error } = await supabase
+        .from("clients")
+        .select("*")
+        .eq("id", clientId)
+        .eq("agent_id", user.id)
+        .single();
+
+      if (error || !clientData) {
+        setIsLoading(false);
+        return;
+      }
+
+      setClient(clientData);
+      setEditForm(clientData);
+
+      // Fetch properties for this client (via client_properties)
+      const { data: clientProperties } = await supabase
+        .from("client_properties")
+        .select(`
+          *,
+          property:properties(*)
+        `)
+        .eq("client_id", clientId);
+
+      if (clientProperties) {
+        setProperties(clientProperties.map((cp: { property: Property }) => cp.property).filter(Boolean));
+      }
+
+      // Fetch showings for this client
+      const { data: showingsData } = await supabase
+        .from("showings")
+        .select(`
+          *,
+          property:properties(*)
+        `)
+        .eq("client_id", clientId)
+        .order("scheduled_date", { ascending: true });
+
+      if (showingsData) {
+        setShowings(showingsData);
+      }
+
+      setIsLoading(false);
+    }
+
+    fetchData();
+  }, [clientId, supabase]);
+
+  const handleSaveEdit = async () => {
+    if (!client) return;
+
+    const { error } = await supabase
+      .from("clients")
+      .update({
+        full_name: editForm.full_name,
+        email: editForm.email,
+        phone: editForm.phone,
+        status: editForm.status,
+        notes: editForm.notes,
+      })
+      .eq("id", client.id);
+
+    if (!error) {
+      setClient({ ...client, ...editForm });
+      setIsEditing(false);
+    }
+  };
+
+  const handleDelete = async () => {
+    if (!client || !confirm("Are you sure you want to delete this client?")) return;
+
+    const { error } = await supabase.from("clients").delete().eq("id", client.id);
+
+    if (!error) {
+      router.push("/clients");
+    }
+  };
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-full">
+        <Loader2 className="w-8 h-8 animate-spin text-sky-400" />
+      </div>
+    );
+  }
 
   if (!client) {
     return (
@@ -197,8 +208,7 @@ export default function ClientDetailPage() {
     );
   }
 
-  const clientProperties = propertiesData.filter((p) => p.clientId === client.id);
-  const clientShowings = showingsData.filter((s) => s.clientId === client.id);
+  const gradientIndex = client.full_name.charCodeAt(0) % gradients.length;
 
   return (
     <div className="p-8">
@@ -215,39 +225,116 @@ export default function ClientDetailPage() {
         <div className="flex items-start justify-between">
           <div className="flex items-center gap-4">
             <div
-              className={`w-16 h-16 rounded-full bg-gradient-to-br ${client.gradient} flex items-center justify-center text-white text-xl font-bold shadow-lg`}
+              className={`w-16 h-16 rounded-full bg-gradient-to-br ${gradients[gradientIndex]} flex items-center justify-center text-white text-xl font-bold shadow-lg`}
             >
-              {client.initials}
+              {getInitials(client.full_name)}
             </div>
             <div>
-              <h1 className="text-2xl font-bold text-white mb-1">{client.name}</h1>
+              {isEditing ? (
+                <input
+                  type="text"
+                  value={editForm.full_name || ""}
+                  onChange={(e) => setEditForm({ ...editForm, full_name: e.target.value })}
+                  className="text-2xl font-bold text-white bg-white/5 border border-white/10 rounded-lg px-3 py-1 mb-1"
+                />
+              ) : (
+                <h1 className="text-2xl font-bold text-white mb-1">{client.full_name}</h1>
+              )}
               <div className="flex items-center gap-4 text-sm text-slate-400">
-                <span className="flex items-center gap-1">
-                  <Mail className="w-4 h-4" /> {client.email}
-                </span>
-                <span className="flex items-center gap-1">
-                  <Phone className="w-4 h-4" /> {client.phone}
-                </span>
+                {isEditing ? (
+                  <>
+                    <input
+                      type="email"
+                      value={editForm.email || ""}
+                      onChange={(e) => setEditForm({ ...editForm, email: e.target.value })}
+                      placeholder="Email"
+                      className="bg-white/5 border border-white/10 rounded px-2 py-1 text-white"
+                    />
+                    <input
+                      type="tel"
+                      value={editForm.phone || ""}
+                      onChange={(e) => setEditForm({ ...editForm, phone: e.target.value })}
+                      placeholder="Phone"
+                      className="bg-white/5 border border-white/10 rounded px-2 py-1 text-white"
+                    />
+                  </>
+                ) : (
+                  <>
+                    {client.email && (
+                      <span className="flex items-center gap-1">
+                        <Mail className="w-4 h-4" /> {client.email}
+                      </span>
+                    )}
+                    {client.phone && (
+                      <span className="flex items-center gap-1">
+                        <Phone className="w-4 h-4" /> {client.phone}
+                      </span>
+                    )}
+                  </>
+                )}
               </div>
             </div>
           </div>
 
           <div className="flex items-center gap-2">
-            <span
-              className={`px-3 py-1 rounded-full text-xs font-medium ${
-                client.status === "active"
-                  ? "bg-emerald-500/10 text-emerald-400"
-                  : "bg-sky-500/10 text-sky-400"
-              }`}
-            >
-              {client.status === "active" ? "Active" : "Searching"}
-            </span>
-            <button className="p-2 rounded-lg border border-white/10 hover:bg-white/5 text-slate-400 transition-colors">
-              <Edit className="w-4 h-4" />
-            </button>
-            <button className="p-2 rounded-lg border border-white/10 hover:bg-white/5 text-slate-400 transition-colors">
-              <MoreHorizontal className="w-4 h-4" />
-            </button>
+            {isEditing ? (
+              <select
+                value={editForm.status || "active"}
+                onChange={(e) => setEditForm({ ...editForm, status: e.target.value as Client["status"] })}
+                className="px-3 py-1 rounded-full text-xs font-medium bg-white/10 text-white border border-white/10"
+              >
+                <option value="active">Active</option>
+                <option value="inactive">Inactive</option>
+                <option value="closed">Closed</option>
+              </select>
+            ) : (
+              <span
+                className={`px-3 py-1 rounded-full text-xs font-medium ${
+                  client.status === "active"
+                    ? "bg-emerald-500/10 text-emerald-400"
+                    : client.status === "inactive"
+                    ? "bg-slate-500/10 text-slate-400"
+                    : "bg-sky-500/10 text-sky-400"
+                }`}
+              >
+                {client.status.charAt(0).toUpperCase() + client.status.slice(1)}
+              </span>
+            )}
+
+            {isEditing ? (
+              <>
+                <button
+                  onClick={handleSaveEdit}
+                  className="p-2 rounded-lg bg-emerald-500 text-black hover:bg-emerald-400 transition-colors"
+                >
+                  <Save className="w-4 h-4" />
+                </button>
+                <button
+                  onClick={() => {
+                    setIsEditing(false);
+                    setEditForm(client);
+                  }}
+                  className="p-2 rounded-lg border border-white/10 hover:bg-white/5 text-slate-400 transition-colors"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </>
+            ) : (
+              <>
+                <button
+                  onClick={() => setIsEditing(true)}
+                  className="p-2 rounded-lg border border-white/10 hover:bg-white/5 text-slate-400 transition-colors"
+                >
+                  <Edit className="w-4 h-4" />
+                </button>
+                <button
+                  onClick={handleDelete}
+                  className="p-2 rounded-lg border border-white/10 hover:bg-red-500/10 text-slate-400 hover:text-red-400 transition-colors"
+                >
+                  <Trash2 className="w-4 h-4" />
+                </button>
+              </>
+            )}
           </div>
         </div>
       </div>
@@ -267,7 +354,7 @@ export default function ClientDetailPage() {
                 <div className="text-xs text-slate-500 uppercase mb-1">Price Range</div>
                 <div className="text-white font-medium flex items-center gap-1">
                   <DollarSign className="w-4 h-4 text-slate-500" />
-                  ${client.criteria.priceMin.toLocaleString()} - ${client.criteria.priceMax.toLocaleString()}
+                  {formatPrice(client.min_price)} - {formatPrice(client.max_price)}
                 </div>
               </div>
 
@@ -276,74 +363,100 @@ export default function ClientDetailPage() {
                   <div className="text-xs text-slate-500 uppercase mb-1">Bedrooms</div>
                   <div className="text-white font-medium flex items-center gap-1">
                     <Bed className="w-4 h-4 text-slate-500" />
-                    {client.criteria.beds}
+                    {client.min_beds ? `${client.min_beds}+` : "Any"}
                   </div>
                 </div>
                 <div>
                   <div className="text-xs text-slate-500 uppercase mb-1">Bathrooms</div>
                   <div className="text-white font-medium flex items-center gap-1">
                     <Bath className="w-4 h-4 text-slate-500" />
-                    {client.criteria.baths}
+                    {client.min_baths ? `${client.min_baths}+` : "Any"}
                   </div>
                 </div>
               </div>
 
-              <div>
-                <div className="text-xs text-slate-500 uppercase mb-2">Locations</div>
-                <div className="flex flex-wrap gap-1">
-                  {client.criteria.locations.map((loc) => (
-                    <span
-                      key={loc}
-                      className="px-2 py-1 rounded-full bg-sky-500/10 text-sky-400 text-xs"
-                    >
-                      {loc}
-                    </span>
-                  ))}
+              {client.locations && client.locations.length > 0 && (
+                <div>
+                  <div className="text-xs text-slate-500 uppercase mb-2">Locations</div>
+                  <div className="flex flex-wrap gap-1">
+                    {client.locations.map((loc) => (
+                      <span
+                        key={loc}
+                        className="px-2 py-1 rounded-full bg-sky-500/10 text-sky-400 text-xs"
+                      >
+                        {loc}
+                      </span>
+                    ))}
+                  </div>
                 </div>
-              </div>
+              )}
 
-              <div>
-                <div className="text-xs text-slate-500 uppercase mb-2">Property Types</div>
-                <div className="flex flex-wrap gap-1">
-                  {client.criteria.propertyTypes.map((type) => (
-                    <span
-                      key={type}
-                      className="px-2 py-1 rounded-full bg-white/5 text-slate-300 text-xs border border-white/10"
-                    >
-                      {type}
-                    </span>
-                  ))}
+              {client.property_types && client.property_types.length > 0 && (
+                <div>
+                  <div className="text-xs text-slate-500 uppercase mb-2">Property Types</div>
+                  <div className="flex flex-wrap gap-1">
+                    {client.property_types.map((type) => (
+                      <span
+                        key={type}
+                        className="px-2 py-1 rounded-full bg-white/5 text-slate-300 text-xs border border-white/10"
+                      >
+                        {type}
+                      </span>
+                    ))}
+                  </div>
                 </div>
-              </div>
+              )}
 
-              <div>
-                <div className="text-xs text-slate-500 uppercase mb-2">Must Haves</div>
-                <div className="flex flex-wrap gap-1">
-                  {client.criteria.mustHaves.map((feature) => (
-                    <span
-                      key={feature}
-                      className="px-2 py-1 rounded-full bg-emerald-500/10 text-emerald-400 text-xs"
-                    >
-                      {feature}
-                    </span>
-                  ))}
+              {client.must_haves && client.must_haves.length > 0 && (
+                <div>
+                  <div className="text-xs text-slate-500 uppercase mb-2">Must Haves</div>
+                  <div className="flex flex-wrap gap-1">
+                    {client.must_haves.map((feature) => (
+                      <span
+                        key={feature}
+                        className="px-2 py-1 rounded-full bg-emerald-500/10 text-emerald-400 text-xs"
+                      >
+                        {feature}
+                      </span>
+                    ))}
+                  </div>
                 </div>
-              </div>
+              )}
 
-              <div>
-                <div className="text-xs text-slate-500 uppercase mb-1">Timeline</div>
-                <div className="text-white font-medium flex items-center gap-1">
-                  <Clock className="w-4 h-4 text-slate-500" />
-                  {client.timeline}
+              {client.dealbreakers && client.dealbreakers.length > 0 && (
+                <div>
+                  <div className="text-xs text-slate-500 uppercase mb-2">Deal Breakers</div>
+                  <div className="flex flex-wrap gap-1">
+                    {client.dealbreakers.map((item) => (
+                      <span
+                        key={item}
+                        className="px-2 py-1 rounded-full bg-red-500/10 text-red-400 text-xs"
+                      >
+                        {item}
+                      </span>
+                    ))}
+                  </div>
                 </div>
-              </div>
+              )}
             </div>
           </div>
 
           {/* Notes Card */}
           <div className="glass-card rounded-xl p-6">
             <h2 className="text-lg font-semibold text-white mb-4">Notes</h2>
-            <p className="text-sm text-slate-400 leading-relaxed">{client.notes}</p>
+            {isEditing ? (
+              <textarea
+                value={editForm.notes || ""}
+                onChange={(e) => setEditForm({ ...editForm, notes: e.target.value })}
+                rows={4}
+                className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white text-sm resize-none"
+                placeholder="Add notes about this client..."
+              />
+            ) : (
+              <p className="text-sm text-slate-400 leading-relaxed">
+                {client.notes || "No notes yet."}
+              </p>
+            )}
           </div>
 
           {/* Activity Card */}
@@ -352,19 +465,19 @@ export default function ClientDetailPage() {
             <div className="space-y-3 text-sm">
               <div className="flex items-center justify-between text-slate-400">
                 <span>Client since</span>
-                <span className="text-white">{client.createdAt}</span>
+                <span className="text-white">{formatDate(client.created_at)}</span>
               </div>
               <div className="flex items-center justify-between text-slate-400">
-                <span>Last active</span>
-                <span className="text-white">{client.lastActive}</span>
+                <span>Last updated</span>
+                <span className="text-white">{getTimeAgo(client.updated_at)}</span>
               </div>
               <div className="flex items-center justify-between text-slate-400">
-                <span>Properties viewed</span>
-                <span className="text-white">{clientProperties.length}</span>
+                <span>Properties matched</span>
+                <span className="text-white">{properties.length}</span>
               </div>
               <div className="flex items-center justify-between text-slate-400">
                 <span>Showings booked</span>
-                <span className="text-white">{clientShowings.length}</span>
+                <span className="text-white">{showings.length}</span>
               </div>
             </div>
           </div>
@@ -388,59 +501,60 @@ export default function ClientDetailPage() {
             </div>
 
             <div className="space-y-3">
-              {clientProperties.map((property) => (
+              {properties.map((property) => (
                 <div
                   key={property.id}
                   className={`flex items-center gap-4 p-3 rounded-lg border transition-colors ${
-                    property.status === "flagged"
+                    property.red_flags && property.red_flags.length > 0
                       ? "border-red-500/20 bg-red-500/5"
                       : "border-white/5 hover:bg-white/5"
                   }`}
                 >
                   <div
-                    className="w-16 h-16 rounded-lg bg-cover bg-center shrink-0"
-                    style={{ backgroundImage: `url(${property.image})` }}
-                  />
+                    className="w-16 h-16 rounded-lg bg-slate-800 bg-cover bg-center shrink-0 flex items-center justify-center"
+                    style={property.photos?.[0] ? { backgroundImage: `url(${property.photos[0]})` } : {}}
+                  >
+                    {!property.photos?.[0] && <Home className="w-6 h-6 text-slate-600" />}
+                  </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-1">
                       <h3 className="text-sm font-medium text-white truncate">
                         {property.address}
                       </h3>
-                      {property.status === "approved" && (
+                      {property.ai_score && property.ai_score >= 80 && (
                         <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
                       )}
-                      {property.status === "flagged" && (
+                      {property.red_flags && property.red_flags.length > 0 && (
                         <AlertTriangle className="w-4 h-4 text-red-400 shrink-0" />
-                      )}
-                      {property.status === "sent" && (
-                        <Send className="w-4 h-4 text-sky-400 shrink-0" />
                       )}
                     </div>
                     <div className="text-xs text-slate-500">
-                      ${property.price.toLocaleString()} • {property.beds} bed, {property.baths} bath
+                      {formatPrice(property.price)} • {property.beds} bed, {property.baths} bath
                     </div>
                   </div>
-                  <div className="text-right shrink-0">
-                    <div
-                      className={`text-sm font-bold flex items-center gap-1 ${
-                        property.match >= 90
-                          ? "text-emerald-400"
-                          : property.match >= 80
-                          ? "text-sky-400"
-                          : "text-slate-400"
-                      }`}
-                    >
-                      <Sparkles className="w-3 h-3" />
-                      {property.match}%
+                  {property.ai_score && (
+                    <div className="text-right shrink-0">
+                      <div
+                        className={`text-sm font-bold flex items-center gap-1 ${
+                          property.ai_score >= 90
+                            ? "text-emerald-400"
+                            : property.ai_score >= 80
+                            ? "text-sky-400"
+                            : "text-slate-400"
+                        }`}
+                      >
+                        <Sparkles className="w-3 h-3" />
+                        {property.ai_score}%
+                      </div>
+                      <div className="text-[10px] text-slate-500">match</div>
                     </div>
-                    <div className="text-[10px] text-slate-500">match</div>
-                  </div>
+                  )}
                 </div>
               ))}
 
-              {clientProperties.length === 0 && (
+              {properties.length === 0 && (
                 <div className="text-center py-8 text-slate-500">
-                  No properties matched yet. AI is searching...
+                  No properties matched yet. Add properties to match with this client.
                 </div>
               )}
             </div>
@@ -459,7 +573,7 @@ export default function ClientDetailPage() {
             </div>
 
             <div className="space-y-3">
-              {clientShowings.map((showing) => (
+              {showings.map((showing) => (
                 <div
                   key={showing.id}
                   className="flex items-center gap-4 p-3 rounded-lg border border-white/5 hover:bg-white/5 transition-colors"
@@ -468,28 +582,66 @@ export default function ClientDetailPage() {
                     <Calendar className="w-5 h-5 text-violet-400" />
                   </div>
                   <div className="flex-1">
-                    <h3 className="text-sm font-medium text-white">{showing.property}</h3>
+                    <h3 className="text-sm font-medium text-white">{showing.property?.address}</h3>
                     <div className="text-xs text-slate-500">
-                      {showing.date} at {showing.time}
+                      {formatDate(showing.scheduled_date)} at {showing.scheduled_time}
                     </div>
                   </div>
                   <span
                     className={`px-2 py-1 rounded-full text-xs font-medium ${
                       showing.status === "confirmed"
                         ? "bg-emerald-500/10 text-emerald-400"
-                        : "bg-amber-500/10 text-amber-400"
+                        : showing.status === "pending"
+                        ? "bg-amber-500/10 text-amber-400"
+                        : "bg-slate-500/10 text-slate-400"
                     }`}
                   >
-                    {showing.status === "confirmed" ? "Confirmed" : "Pending"}
+                    {showing.status.charAt(0).toUpperCase() + showing.status.slice(1)}
                   </span>
                 </div>
               ))}
 
-              {clientShowings.length === 0 && (
+              {showings.length === 0 && (
                 <div className="text-center py-8 text-slate-500">
                   No showings scheduled yet.
                 </div>
               )}
+            </div>
+          </div>
+
+          {/* Portal Link */}
+          <div className="glass-card rounded-xl p-6">
+            <div className="flex items-center justify-between mb-3">
+              <h2 className="text-lg font-semibold text-white flex items-center gap-2">
+                <Link2 className="w-5 h-5 text-sky-400" />
+                Client Portal
+              </h2>
+            </div>
+            <p className="text-sm text-slate-400 mb-4">
+              Share this link with your client so they can view properties and schedule showings.
+            </p>
+            <div className="flex items-center gap-2">
+              <div className="flex-1 bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-sm text-slate-300 truncate">
+                {getPortalLink()}
+              </div>
+              <button
+                onClick={copyPortalLink}
+                className={`px-4 py-2.5 rounded-lg font-medium text-sm flex items-center gap-2 transition-colors ${
+                  copiedLink
+                    ? "bg-emerald-500 text-white"
+                    : "bg-sky-500 text-white hover:bg-sky-600"
+                }`}
+              >
+                {copiedLink ? (
+                  <>
+                    <Check className="w-4 h-4" /> Copied
+                  </>
+                ) : (
+                  <>
+                    <Copy className="w-4 h-4" /> Copy Link
+                  </>
+                )}
+              </button>
             </div>
           </div>
 

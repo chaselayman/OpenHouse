@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { NextResponse } from "next/server";
+import { createGoogleCalendarClient } from "@/lib/services/google-calendar";
 
 export async function GET(
   request: Request,
@@ -50,6 +51,29 @@ export async function PATCH(
   }
 
   const body = await request.json();
+
+  // If cancelling, first get the showing to check for calendar event
+  if (body.status === "cancelled") {
+    const { data: existingShowing } = await supabase
+      .from("showings")
+      .select("calendar_event_id")
+      .eq("id", id)
+      .eq("agent_id", user.id)
+      .single();
+
+    // Cancel Google Calendar event if it exists
+    if (existingShowing?.calendar_event_id) {
+      const googleCalendar = createGoogleCalendarClient();
+      if (googleCalendar) {
+        try {
+          await googleCalendar.cancelShowingEvent(existingShowing.calendar_event_id);
+        } catch (calendarError) {
+          console.error("Failed to cancel calendar event:", calendarError);
+          // Don't fail the request if calendar cancellation fails
+        }
+      }
+    }
+  }
 
   const { data, error } = await supabase
     .from("showings")

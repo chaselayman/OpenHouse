@@ -281,6 +281,8 @@ export interface Database {
           status: "pending" | "confirmed" | "cancelled" | "completed" | "no_show";
           showingtime_id: string | null;
           confirmation_code: string | null;
+          calendar_event_id: string | null;
+          external_id: string | null;
           notes: string | null;
           feedback: string | null;
           client_feedback: string | null;
@@ -298,6 +300,8 @@ export interface Database {
           status?: "pending" | "confirmed" | "cancelled" | "completed" | "no_show";
           showingtime_id?: string | null;
           confirmation_code?: string | null;
+          calendar_event_id?: string | null;
+          external_id?: string | null;
           notes?: string | null;
           feedback?: string | null;
           client_feedback?: string | null;
@@ -315,6 +319,8 @@ export interface Database {
           status?: "pending" | "confirmed" | "cancelled" | "completed" | "no_show";
           showingtime_id?: string | null;
           confirmation_code?: string | null;
+          calendar_event_id?: string | null;
+          external_id?: string | null;
           notes?: string | null;
           feedback?: string | null;
           client_feedback?: string | null;

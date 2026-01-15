@@ -10,6 +10,23 @@ export async function GET(request: Request) {
     const supabase = await createClient();
     const { error } = await supabase.auth.exchangeCodeForSession(code);
     if (!error) {
+      // Ensure profile exists
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        const { data: existingProfile } = await supabase
+          .from("profiles")
+          .select("id")
+          .eq("id", user.id)
+          .single();
+
+        if (!existingProfile) {
+          await supabase.from("profiles").insert({
+            id: user.id,
+            email: user.email || "",
+            full_name: user.user_metadata?.full_name || user.email?.split("@")[0] || "",
+          });
+        }
+      }
       return NextResponse.redirect(`${origin}${next}`);
     }
   }

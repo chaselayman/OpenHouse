@@ -15,15 +15,17 @@ import {
   DollarSign,
   Bed,
   Bath,
-  Square,
   Calendar,
   Sparkles,
 } from "lucide-react";
+import { createClient } from "@/lib/supabase/client";
 
 export default function NewClientPage() {
   const router = useRouter();
+  const supabase = createClient();
   const [step, setStep] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState("");
   const [formData, setFormData] = useState({
     // Contact Info
     firstName: "",
@@ -43,7 +45,6 @@ export default function NewClientPage() {
     propertyTypes: [] as string[],
     // Preferences
     mustHaves: [] as string[],
-    niceToHaves: [] as string[],
     dealBreakers: [] as string[],
     timeline: "3-6 months",
     notes: "",
@@ -53,6 +54,7 @@ export default function NewClientPage() {
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
   ) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
+    setError("");
   };
 
   const toggleArrayItem = (field: keyof typeof formData, item: string) => {
@@ -66,11 +68,49 @@ export default function NewClientPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setError("");
+
     if (step < 3) {
       setStep(step + 1);
     } else {
       setIsLoading(true);
-      await new Promise((resolve) => setTimeout(resolve, 1500));
+
+      // Get current user
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        setError("You must be logged in to create a client");
+        setIsLoading(false);
+        return;
+      }
+
+      // Insert client into database
+      const { error: insertError } = await supabase.from("clients").insert({
+        agent_id: user.id,
+        full_name: `${formData.firstName} ${formData.lastName}`.trim(),
+        email: formData.email || null,
+        phone: formData.phone || null,
+        status: "active",
+        min_price: formData.minPrice ? parseInt(formData.minPrice) : null,
+        max_price: formData.maxPrice ? parseInt(formData.maxPrice) : null,
+        min_beds: formData.minBeds ? parseInt(formData.minBeds) : null,
+        max_beds: formData.maxBeds ? parseInt(formData.maxBeds) : null,
+        min_baths: formData.minBaths ? parseFloat(formData.minBaths) : null,
+        max_baths: formData.maxBaths ? parseFloat(formData.maxBaths) : null,
+        min_sqft: formData.minSqft ? parseInt(formData.minSqft) : null,
+        max_sqft: formData.maxSqft ? parseInt(formData.maxSqft) : null,
+        locations: formData.locations.length > 0 ? formData.locations : null,
+        property_types: formData.propertyTypes.length > 0 ? formData.propertyTypes : null,
+        must_haves: formData.mustHaves.length > 0 ? formData.mustHaves : null,
+        dealbreakers: formData.dealBreakers.length > 0 ? formData.dealBreakers : null,
+        notes: formData.notes || null,
+      });
+
+      if (insertError) {
+        setError(insertError.message);
+        setIsLoading(false);
+        return;
+      }
+
       router.push("/clients");
     }
   };
@@ -101,6 +141,17 @@ export default function NewClientPage() {
     "Hardwood Floors",
     "Central AC",
     "Smart Home",
+  ];
+
+  const dealBreakerOptions = [
+    "Busy Road",
+    "HOA",
+    "Foundation Issues",
+    "Flood Zone",
+    "Major Repairs Needed",
+    "Small Lot",
+    "No Garage",
+    "Outdated Kitchen",
   ];
 
   return (
@@ -160,6 +211,12 @@ export default function NewClientPage() {
       {/* Form */}
       <form onSubmit={handleSubmit}>
         <div className="glass-card rounded-xl p-8">
+          {error && (
+            <div className="mb-6 p-3 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 text-sm">
+              {error}
+            </div>
+          )}
+
           {/* Step 1: Contact Info */}
           {step === 1 && (
             <div className="space-y-6">
@@ -184,7 +241,7 @@ export default function NewClientPage() {
                     value={formData.firstName}
                     onChange={handleInputChange}
                     required
-                    className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder-slate-500"
+                    className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder-slate-500 focus:border-sky-500 focus:ring-1 focus:ring-sky-500 outline-none"
                     placeholder="John"
                   />
                 </div>
@@ -198,7 +255,7 @@ export default function NewClientPage() {
                     value={formData.lastName}
                     onChange={handleInputChange}
                     required
-                    className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder-slate-500"
+                    className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder-slate-500 focus:border-sky-500 focus:ring-1 focus:ring-sky-500 outline-none"
                     placeholder="Smith"
                   />
                 </div>
@@ -207,15 +264,14 @@ export default function NewClientPage() {
               <div>
                 <label className="block text-sm font-medium text-slate-300 mb-2">
                   <Mail className="w-4 h-4 inline mr-2" />
-                  Email Address *
+                  Email Address
                 </label>
                 <input
                   type="email"
                   name="email"
                   value={formData.email}
                   onChange={handleInputChange}
-                  required
-                  className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder-slate-500"
+                  className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder-slate-500 focus:border-sky-500 focus:ring-1 focus:ring-sky-500 outline-none"
                   placeholder="john.smith@email.com"
                 />
                 <p className="text-xs text-slate-500 mt-2">
@@ -233,7 +289,7 @@ export default function NewClientPage() {
                   name="phone"
                   value={formData.phone}
                   onChange={handleInputChange}
-                  className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder-slate-500"
+                  className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder-slate-500 focus:border-sky-500 focus:ring-1 focus:ring-sky-500 outline-none"
                   placeholder="(512) 555-0123"
                 />
               </div>
@@ -267,7 +323,7 @@ export default function NewClientPage() {
                       name="minPrice"
                       value={formData.minPrice}
                       onChange={handleInputChange}
-                      className="w-full pl-8 pr-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder-slate-500"
+                      className="w-full pl-8 pr-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder-slate-500 focus:border-sky-500 focus:ring-1 focus:ring-sky-500 outline-none"
                       placeholder="Min"
                     />
                   </div>
@@ -278,7 +334,7 @@ export default function NewClientPage() {
                       name="maxPrice"
                       value={formData.maxPrice}
                       onChange={handleInputChange}
-                      className="w-full pl-8 pr-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder-slate-500"
+                      className="w-full pl-8 pr-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder-slate-500 focus:border-sky-500 focus:ring-1 focus:ring-sky-500 outline-none"
                       placeholder="Max"
                     />
                   </div>
@@ -442,6 +498,29 @@ export default function NewClientPage() {
                 </div>
               </div>
 
+              {/* Deal Breakers */}
+              <div>
+                <label className="block text-sm font-medium text-slate-300 mb-3">
+                  Deal Breakers
+                </label>
+                <div className="flex flex-wrap gap-2">
+                  {dealBreakerOptions.map((item) => (
+                    <button
+                      key={item}
+                      type="button"
+                      onClick={() => toggleArrayItem("dealBreakers", item)}
+                      className={`px-3 py-1.5 rounded-full text-sm font-medium transition-all ${
+                        formData.dealBreakers.includes(item)
+                          ? "bg-red-500 text-white"
+                          : "bg-white/5 text-slate-300 border border-white/10 hover:border-white/20"
+                      }`}
+                    >
+                      {item}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
               {/* Timeline */}
               <div>
                 <label className="block text-sm font-medium text-slate-300 mb-3">
@@ -472,7 +551,7 @@ export default function NewClientPage() {
                   value={formData.notes}
                   onChange={handleInputChange}
                   rows={4}
-                  className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder-slate-500 resize-none"
+                  className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder-slate-500 resize-none focus:border-sky-500 focus:ring-1 focus:ring-sky-500 outline-none"
                   placeholder="Any other details about what your client is looking for..."
                 />
               </div>

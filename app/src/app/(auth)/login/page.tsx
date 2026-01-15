@@ -28,7 +28,7 @@ export default function LoginPage() {
     setIsLoading(true);
     setError("");
 
-    const { error } = await supabase.auth.signInWithPassword({
+    const { data, error } = await supabase.auth.signInWithPassword({
       email: formData.email,
       password: formData.password,
     });
@@ -37,6 +37,23 @@ export default function LoginPage() {
       setError(error.message);
       setIsLoading(false);
       return;
+    }
+
+    // Ensure profile exists
+    if (data.user) {
+      const { data: existingProfile } = await supabase
+        .from("profiles")
+        .select("id")
+        .eq("id", data.user.id)
+        .single();
+
+      if (!existingProfile) {
+        await supabase.from("profiles").insert({
+          id: data.user.id,
+          email: data.user.email || "",
+          full_name: data.user.user_metadata?.full_name || data.user.email?.split("@")[0] || "",
+        });
+      }
     }
 
     router.push("/dashboard");
