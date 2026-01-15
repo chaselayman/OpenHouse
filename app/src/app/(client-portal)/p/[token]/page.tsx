@@ -10,7 +10,6 @@ import {
   ChevronLeft,
   ChevronRight,
   Loader2,
-  Heart,
   X,
   Clock,
   CheckCircle2,
@@ -22,6 +21,7 @@ import {
   Car,
   TreePine,
   MessageSquare,
+  ExternalLink,
 } from "lucide-react";
 
 interface Property {
@@ -37,6 +37,8 @@ interface Property {
   photos: string[] | null;
   description: string | null;
   highlights: string[] | null;
+  mls_id: string | null;
+  listing_url: string | null;
 }
 
 interface ClientProperty {
@@ -52,6 +54,14 @@ interface Showing {
   scheduled_time: string;
   status: string;
   property: Property;
+}
+
+interface TimeSlot {
+  date: string;
+  time: string;
+  available: boolean;
+  duration: number;
+  unavailableReason?: string;
 }
 
 interface ClientData {
@@ -91,6 +101,8 @@ export default function ClientPortalPage() {
   const [selectedTime, setSelectedTime] = useState("");
   const [scheduling, setScheduling] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [availableSlots, setAvailableSlots] = useState<TimeSlot[]>([]);
+  const [loadingSlots, setLoadingSlots] = useState(false);
 
   const BATCH_SIZE = 5;
 
@@ -119,6 +131,32 @@ export default function ClientPortalPage() {
     }
   }
 
+  async function fetchAvailableSlots(propertyId: string, date: string) {
+    setLoadingSlots(true);
+    setAvailableSlots([]);
+    try {
+      const response = await fetch(
+        `/api/client-portal/${token}/schedule?propertyId=${propertyId}&date=${date}`
+      );
+      if (response.ok) {
+        const data = await response.json();
+        // Filter to only show available slots for the selected date
+        const slotsForDate = (data.slots || []).filter(
+          (slot: TimeSlot) => slot.date === date
+        );
+        setAvailableSlots(slotsForDate);
+      } else {
+        console.error("Failed to fetch slots:", await response.text());
+        setAvailableSlots([]);
+      }
+    } catch (err) {
+      console.error("Failed to fetch available slots:", err);
+      setAvailableSlots([]);
+    } finally {
+      setLoadingSlots(false);
+    }
+  }
+
   async function handleScheduleShowing() {
     const currentProperty = properties[currentIndex];
     if (!currentProperty || !selectedDate || !selectedTime) return;
@@ -135,8 +173,10 @@ export default function ClientPortalPage() {
         }),
       });
 
+      const data = await response.json();
+
       if (!response.ok) {
-        throw new Error("Failed to schedule showing");
+        throw new Error(data.details || data.error || "Failed to schedule showing");
       }
 
       // Mark as interested and move to next
@@ -144,6 +184,7 @@ export default function ClientPortalPage() {
       setShowScheduleModal(false);
       setSelectedDate("");
       setSelectedTime("");
+      setAvailableSlots([]);
       fetchClientData();
     } catch (err) {
       alert(err instanceof Error ? err.message : "Failed to schedule");
@@ -283,50 +324,72 @@ export default function ClientPortalPage() {
         </div>
       ) : currentProperty ? (
         <div className="bg-white/5 border border-white/10 rounded-2xl overflow-hidden">
-          {/* Photo */}
-          <div className="relative aspect-[4/3] bg-slate-800">
-            {currentProperty.property.photos?.[currentPhotoIndex] ? (
-              <img
-                src={currentProperty.property.photos[currentPhotoIndex]}
-                alt={currentProperty.property.address}
-                className="w-full h-full object-cover"
-              />
-            ) : (
-              <div className="w-full h-full flex items-center justify-center text-slate-600">
-                <Home className="w-16 h-16" />
-              </div>
-            )}
-
-            {/* Photo navigation */}
-            {currentProperty.property.photos && currentProperty.property.photos.length > 1 && (
-              <>
-                <button
-                  onClick={() => setCurrentPhotoIndex((i) =>
-                    i === 0 ? currentProperty.property.photos!.length - 1 : i - 1
-                  )}
-                  className="absolute left-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-black/50 flex items-center justify-center text-white"
-                >
-                  <ChevronLeft className="w-4 h-4" />
-                </button>
-                <button
-                  onClick={() => setCurrentPhotoIndex((i) =>
-                    i === currentProperty.property.photos!.length - 1 ? 0 : i + 1
-                  )}
-                  className="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-black/50 flex items-center justify-center text-white"
-                >
-                  <ChevronRight className="w-4 h-4" />
-                </button>
-                <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-1">
-                  {currentProperty.property.photos.map((_, i) => (
-                    <div
-                      key={i}
-                      className={`w-1.5 h-1.5 rounded-full transition-colors ${
-                        i === currentPhotoIndex ? 'bg-white' : 'bg-white/40'
-                      }`}
-                    />
-                  ))}
+          {/* Photo Gallery */}
+          <div className="flex gap-1">
+            {/* Main Photo */}
+            <div className="relative flex-1 aspect-[4/3] bg-slate-800">
+              {currentProperty.property.photos?.[currentPhotoIndex] ? (
+                <img
+                  src={currentProperty.property.photos[currentPhotoIndex]}
+                  alt={currentProperty.property.address}
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center text-slate-600">
+                  <Home className="w-16 h-16" />
                 </div>
-              </>
+              )}
+
+              {/* Photo navigation arrows */}
+              {currentProperty.property.photos && currentProperty.property.photos.length > 1 && (
+                <>
+                  <button
+                    onClick={() => setCurrentPhotoIndex((i) =>
+                      i === 0 ? currentProperty.property.photos!.length - 1 : i - 1
+                    )}
+                    className="absolute left-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-black/50 flex items-center justify-center text-white hover:bg-black/70 transition-colors"
+                  >
+                    <ChevronLeft className="w-4 h-4" />
+                  </button>
+                  <button
+                    onClick={() => setCurrentPhotoIndex((i) =>
+                      i === currentProperty.property.photos!.length - 1 ? 0 : i + 1
+                    )}
+                    className="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-black/50 flex items-center justify-center text-white hover:bg-black/70 transition-colors"
+                  >
+                    <ChevronRight className="w-4 h-4" />
+                  </button>
+                </>
+              )}
+            </div>
+
+            {/* Thumbnail Strip */}
+            {currentProperty.property.photos && currentProperty.property.photos.length > 1 && (
+              <div className="w-20 flex flex-col gap-1">
+                {currentProperty.property.photos.slice(0, 3).map((photo, i) => (
+                  <button
+                    key={i}
+                    onClick={() => setCurrentPhotoIndex(i)}
+                    className={`relative flex-1 bg-slate-800 overflow-hidden transition-all ${
+                      i === currentPhotoIndex ? 'ring-2 ring-sky-500' : 'opacity-70 hover:opacity-100'
+                    }`}
+                  >
+                    <img
+                      src={photo}
+                      alt={`${currentProperty.property.address} - Photo ${i + 1}`}
+                      className="w-full h-full object-cover"
+                    />
+                    {/* Show "+X more" on last thumbnail if more photos exist */}
+                    {i === 2 && currentProperty.property.photos!.length > 3 && (
+                      <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
+                        <span className="text-white text-xs font-semibold">
+                          +{currentProperty.property.photos!.length - 3}
+                        </span>
+                      </div>
+                    )}
+                  </button>
+                ))}
+              </div>
             )}
           </div>
 
@@ -382,6 +445,19 @@ export default function ClientPortalPage() {
                 {currentProperty.property.description}
               </p>
             )}
+
+            {/* View Full Listing Link */}
+            {currentProperty.property.listing_url && (
+              <a
+                href={currentProperty.property.listing_url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1.5 text-sm text-sky-400 hover:text-sky-300 transition-colors"
+              >
+                <ExternalLink className="w-4 h-4" />
+                View Full Listing
+              </a>
+            )}
           </div>
 
           {/* Action Buttons */}
@@ -393,14 +469,6 @@ export default function ClientPortalPage() {
             >
               <ThumbsDown className="w-5 h-5" />
               Pass
-            </button>
-            <button
-              onClick={() => handlePropertyAction("interested")}
-              disabled={submitting}
-              className="flex-1 py-3.5 rounded-xl bg-pink-500/10 text-pink-400 font-semibold flex items-center justify-center gap-2 hover:bg-pink-500/20 transition-colors disabled:opacity-50"
-            >
-              <Heart className="w-5 h-5" />
-              Like
             </button>
             <button
               onClick={() => setShowScheduleModal(true)}
@@ -515,6 +583,7 @@ export default function ClientPortalPage() {
                   setShowScheduleModal(false);
                   setSelectedDate("");
                   setSelectedTime("");
+                  setAvailableSlots([]);
                 }}
                 className="p-2 rounded-lg hover:bg-white/10 text-slate-400"
               >
@@ -532,33 +601,68 @@ export default function ClientPortalPage() {
                 <input
                   type="date"
                   value={selectedDate}
-                  onChange={(e) => setSelectedDate(e.target.value)}
+                  onChange={(e) => {
+                    setSelectedDate(e.target.value);
+                    setSelectedTime("");
+                    if (e.target.value && currentProperty) {
+                      fetchAvailableSlots(currentProperty.property.id, e.target.value);
+                    }
+                  }}
                   min={new Date().toISOString().split("T")[0]}
                   className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white focus:outline-none focus:border-sky-500"
                 />
               </div>
 
-              <div>
-                <label className="block text-sm font-medium text-slate-300 mb-2">
-                  Preferred Time
-                </label>
-                <select
-                  value={selectedTime}
-                  onChange={(e) => setSelectedTime(e.target.value)}
-                  className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white focus:outline-none focus:border-sky-500"
-                >
-                  <option value="">Select a time</option>
-                  <option value="09:00">9:00 AM</option>
-                  <option value="10:00">10:00 AM</option>
-                  <option value="11:00">11:00 AM</option>
-                  <option value="12:00">12:00 PM</option>
-                  <option value="13:00">1:00 PM</option>
-                  <option value="14:00">2:00 PM</option>
-                  <option value="15:00">3:00 PM</option>
-                  <option value="16:00">4:00 PM</option>
-                  <option value="17:00">5:00 PM</option>
-                </select>
-              </div>
+              {selectedDate && (
+                <div>
+                  <label className="block text-sm font-medium text-slate-300 mb-2">
+                    Available Times
+                  </label>
+                  {loadingSlots ? (
+                    <div className="flex items-center justify-center py-4">
+                      <Loader2 className="w-5 h-5 animate-spin text-sky-500" />
+                      <span className="ml-2 text-slate-400">Checking availability...</span>
+                    </div>
+                  ) : availableSlots.length > 0 ? (
+                    <div className="grid grid-cols-3 gap-2">
+                      {availableSlots.map((slot) => {
+                        const hour = parseInt(slot.time.split(":")[0]);
+                        const displayHour = hour > 12 ? hour - 12 : hour;
+                        const ampm = hour >= 12 ? "PM" : "AM";
+                        const displayTime = `${displayHour}:00 ${ampm}`;
+
+                        return (
+                          <button
+                            key={slot.time}
+                            onClick={() => slot.available && setSelectedTime(slot.time)}
+                            disabled={!slot.available}
+                            className={`py-2 px-3 rounded-lg text-sm font-medium transition-colors ${
+                              selectedTime === slot.time
+                                ? "bg-sky-500 text-white"
+                                : slot.available
+                                ? "bg-white/5 border border-white/10 text-white hover:bg-white/10"
+                                : "bg-white/5 border border-white/5 text-slate-500 cursor-not-allowed line-through"
+                            }`}
+                            title={
+                              !slot.available
+                                ? slot.unavailableReason === "agent_busy"
+                                  ? "Agent unavailable"
+                                  : "Not available"
+                                : undefined
+                            }
+                          >
+                            {displayTime}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  ) : (
+                    <p className="text-sm text-slate-400 py-2">
+                      No available times for this date. Please try another date.
+                    </p>
+                  )}
+                </div>
+              )}
             </div>
 
             <button
@@ -580,7 +684,7 @@ export default function ClientPortalPage() {
             </button>
 
             <p className="text-xs text-slate-500 text-center mt-4">
-              Your agent will confirm the showing time
+              Times shown are available based on listing and agent schedule
             </p>
           </div>
         </div>

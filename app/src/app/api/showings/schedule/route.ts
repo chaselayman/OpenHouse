@@ -4,15 +4,61 @@ import { cookies } from "next/headers";
 import {
   createShowingTimeClient,
   createMockShowingTimeClient,
+  TimeSlot,
 } from "@/lib/services/showingtime";
 import {
   createGoogleCalendarClient,
   formatShowingEvent,
 } from "@/lib/services/google-calendar";
 
+// Buffer time in minutes between showings (agent travel time)
+const SHOWING_BUFFER_MINUTES = 30;
+
+interface AgentShowing {
+  scheduled_date: string;
+  scheduled_time: string;
+  duration_minutes: number;
+  status: string;
+}
+
 /**
- * GET /api/showings/schedule?propertyId=xxx&startDate=xxx&endDate=xxx
- * Get available time slots for a property
+ * Check if a time slot conflicts with existing agent showings
+ * Takes into account buffer time for travel between showings
+ */
+function isSlotAvailableForAgent(
+  slot: TimeSlot,
+  agentShowings: AgentShowing[],
+  bufferMinutes: number = SHOWING_BUFFER_MINUTES
+): boolean {
+  const slotStart = new Date(`${slot.date}T${slot.time}`);
+  const slotEnd = new Date(slotStart.getTime() + slot.duration * 60 * 1000);
+
+  for (const showing of agentShowings) {
+    // Skip cancelled showings
+    if (showing.status === "cancelled") continue;
+
+    const showingStart = new Date(`${showing.scheduled_date}T${showing.scheduled_time}`);
+    const showingEnd = new Date(
+      showingStart.getTime() + (showing.duration_minutes || 30) * 60 * 1000
+    );
+
+    // Add buffer time before and after the existing showing
+    const bufferMs = bufferMinutes * 60 * 1000;
+    const blockedStart = new Date(showingStart.getTime() - bufferMs);
+    const blockedEnd = new Date(showingEnd.getTime() + bufferMs);
+
+    // Check if there's any overlap
+    if (slotStart < blockedEnd && slotEnd > blockedStart) {
+      return false; // Conflict found
+    }
+  }
+
+  return true; // No conflicts
+}
+
+/**
+ * GET /api/showings/schedule?propertyId=xxx&startDate=xxx&endDate=xxx&agentId=xxx
+ * Get available time slots for a property, filtered by agent availability
  */
 export async function GET(request: NextRequest) {
   try {
@@ -34,17 +80,10 @@ export async function GET(request: NextRequest) {
       }
     );
 
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-
-    if (!user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
     const propertyId = request.nextUrl.searchParams.get("propertyId");
     const startDate = request.nextUrl.searchParams.get("startDate");
     const endDate = request.nextUrl.searchParams.get("endDate");
+    const agentId = request.nextUrl.searchParams.get("agentId");
 
     if (!propertyId) {
       return NextResponse.json(
@@ -59,10 +98,10 @@ export async function GET(request: NextRequest) {
       endDate ||
       new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split("T")[0];
 
-    // Get property details
+    // Get property details (including agent_id)
     const { data: property } = await supabase
       .from("properties")
-      .select("mls_id, address")
+      .select("mls_id, address, agent_id")
       .eq("id", propertyId)
       .single();
 
@@ -73,20 +112,70 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // Use ShowingTime client (mock for now until credentials available)
+    // Use the property's agent or the provided agentId
+    const effectiveAgentId = agentId || property.agent_id;
+
+    // Get ShowingTime availability (listing availability)
     const showingTime = createShowingTimeClient() || createMockShowingTimeClient();
-    const slots = await showingTime.getAvailability(
+    const showingTimeSlots = await showingTime.getAvailability(
       property.mls_id || propertyId,
       start,
       end
     );
+
+    // Get agent's existing showings in the date range
+    const { data: agentShowings } = await supabase
+      .from("showings")
+      .select("scheduled_date, scheduled_time, duration_minutes, status")
+      .eq("agent_id", effectiveAgentId)
+      .gte("scheduled_date", start)
+      .lte("scheduled_date", end)
+      .neq("status", "cancelled");
+
+    // Filter slots to only include those where:
+    // 1. ShowingTime says the property is available
+    // 2. Agent doesn't have a conflicting showing (with buffer time)
+    const availableSlots = showingTimeSlots.filter((slot) => {
+      // Skip if ShowingTime says unavailable
+      if (!slot.available) return false;
+
+      // Check if agent is available (with buffer time for travel)
+      return isSlotAvailableForAgent(
+        slot,
+        agentShowings || [],
+        SHOWING_BUFFER_MINUTES
+      );
+    });
+
+    // Also return unavailable slots marked as such for UI purposes
+    const allSlots = showingTimeSlots.map((slot) => {
+      const showingTimeAvailable = slot.available;
+      const agentAvailable = isSlotAvailableForAgent(
+        slot,
+        agentShowings || [],
+        SHOWING_BUFFER_MINUTES
+      );
+
+      return {
+        ...slot,
+        available: showingTimeAvailable && agentAvailable,
+        // Include reason for unavailability (helpful for debugging/UI)
+        unavailableReason: !showingTimeAvailable
+          ? "listing_unavailable"
+          : !agentAvailable
+          ? "agent_conflict"
+          : undefined,
+      };
+    });
 
     return NextResponse.json({
       propertyId,
       propertyAddress: property.address,
       startDate: start,
       endDate: end,
-      slots,
+      slots: allSlots,
+      bufferMinutes: SHOWING_BUFFER_MINUTES,
+      agentShowingsCount: agentShowings?.length || 0,
     });
   } catch (error) {
     console.error("Get availability error:", error);
@@ -170,6 +259,33 @@ export async function POST(request: NextRequest) {
     const property = propertyResult.data;
     const client = clientResult.data;
     const agent = agentResult.data;
+
+    // Check agent availability before booking
+    const showingDuration = 30; // Default showing duration in minutes
+    const { data: conflictingShowings } = await supabase
+      .from("showings")
+      .select("scheduled_date, scheduled_time, duration_minutes, status")
+      .eq("agent_id", user.id)
+      .eq("scheduled_date", date)
+      .neq("status", "cancelled");
+
+    // Create a slot object to check availability
+    const requestedSlot: TimeSlot = {
+      date,
+      time,
+      available: true,
+      duration: showingDuration,
+    };
+
+    if (!isSlotAvailableForAgent(requestedSlot, conflictingShowings || [], SHOWING_BUFFER_MINUTES)) {
+      return NextResponse.json(
+        {
+          error: "Time slot unavailable",
+          details: `You have another showing within ${SHOWING_BUFFER_MINUTES} minutes of this time. Please select a different time to allow for travel between showings.`,
+        },
+        { status: 409 }
+      );
+    }
 
     // Request showing via ShowingTime (mock for now)
     const showingTime = createShowingTimeClient() || createMockShowingTimeClient();

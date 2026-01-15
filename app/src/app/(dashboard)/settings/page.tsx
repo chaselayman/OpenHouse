@@ -14,6 +14,7 @@ import {
   Loader2,
   LogOut,
   AlertCircle,
+  X,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import type { Profile, Integration } from "@/lib/types/database";
@@ -27,6 +28,8 @@ export default function SettingsPage() {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [integrations, setIntegrations] = useState<Integration[]>([]);
   const [clientCount, setClientCount] = useState(0);
+  const [connectingIntegration, setConnectingIntegration] = useState<string | null>(null);
+  const [integrationError, setIntegrationError] = useState<string | null>(null);
 
   // Form state
   const [formData, setFormData] = useState({
@@ -198,6 +201,71 @@ export default function SettingsPage() {
     return integration?.status === "connected" ? "connected" : "disconnected";
   }
 
+  async function handleConnectIntegration(type: "google_calendar" | "showingtime") {
+    setConnectingIntegration(type);
+    setIntegrationError(null);
+
+    try {
+      const endpoint = type === "google_calendar"
+        ? "/api/integrations/google-calendar"
+        : "/api/integrations/showingtime";
+
+      const response = await fetch(endpoint, {
+        method: "POST",
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.details || data.error || "Failed to connect");
+      }
+
+      // Refresh integrations
+      await fetchData();
+    } catch (error) {
+      console.error(`Error connecting ${type}:`, error);
+      setIntegrationError(
+        error instanceof Error ? error.message : "Failed to connect integration"
+      );
+    } finally {
+      setConnectingIntegration(null);
+    }
+  }
+
+  async function handleDisconnectIntegration(type: "google_calendar" | "showingtime") {
+    if (!confirm(`Are you sure you want to disconnect ${type === "google_calendar" ? "Google Calendar" : "ShowingTime"}?`)) {
+      return;
+    }
+
+    setConnectingIntegration(type);
+    setIntegrationError(null);
+
+    try {
+      const endpoint = type === "google_calendar"
+        ? "/api/integrations/google-calendar"
+        : "/api/integrations/showingtime";
+
+      const response = await fetch(endpoint, {
+        method: "DELETE",
+      });
+
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.error || "Failed to disconnect");
+      }
+
+      // Refresh integrations
+      await fetchData();
+    } catch (error) {
+      console.error(`Error disconnecting ${type}:`, error);
+      setIntegrationError(
+        error instanceof Error ? error.message : "Failed to disconnect integration"
+      );
+    } finally {
+      setConnectingIntegration(null);
+    }
+  }
+
   const tabs = [
     { id: "profile", label: "Profile", icon: User },
     { id: "integrations", label: "Integrations", icon: LinkIcon },
@@ -361,6 +429,22 @@ export default function SettingsPage() {
           {/* Integrations Tab */}
           {activeTab === "integrations" && (
             <div className="space-y-6">
+              {/* Error message */}
+              {integrationError && (
+                <div className="p-4 rounded-lg bg-red-500/10 border border-red-500/20 flex items-start gap-3">
+                  <AlertCircle className="w-5 h-5 text-red-400 shrink-0 mt-0.5" />
+                  <div className="flex-1">
+                    <p className="text-sm text-red-400">{integrationError}</p>
+                  </div>
+                  <button
+                    onClick={() => setIntegrationError(null)}
+                    className="text-red-400 hover:text-red-300"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
+              )}
+
               <div className="glass-card rounded-xl p-6">
                 <h2 className="text-lg font-semibold text-white mb-6">Connected Services</h2>
 
@@ -379,12 +463,32 @@ export default function SettingsPage() {
                       </div>
                     </div>
                     {getIntegrationStatus("showingtime") === "connected" ? (
-                      <span className="px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-400 text-xs font-medium">
-                        Connected
-                      </span>
+                      <div className="flex items-center gap-2">
+                        <span className="px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-400 text-xs font-medium">
+                          Connected
+                        </span>
+                        <button
+                          onClick={() => handleDisconnectIntegration("showingtime")}
+                          disabled={connectingIntegration === "showingtime"}
+                          className="px-3 py-1 rounded-lg text-slate-400 hover:text-red-400 text-xs transition-colors disabled:opacity-50"
+                        >
+                          Disconnect
+                        </button>
+                      </div>
                     ) : (
-                      <button className="px-4 py-2 rounded-lg bg-white text-black text-sm font-medium hover:bg-slate-200 transition-colors">
-                        Connect
+                      <button
+                        onClick={() => handleConnectIntegration("showingtime")}
+                        disabled={connectingIntegration === "showingtime"}
+                        className="px-4 py-2 rounded-lg bg-white text-black text-sm font-medium hover:bg-slate-200 transition-colors disabled:opacity-50 flex items-center gap-2"
+                      >
+                        {connectingIntegration === "showingtime" ? (
+                          <>
+                            <Loader2 className="w-4 h-4 animate-spin" />
+                            Connecting...
+                          </>
+                        ) : (
+                          "Connect"
+                        )}
                       </button>
                     )}
                   </div>
@@ -418,16 +522,44 @@ export default function SettingsPage() {
                       </div>
                     </div>
                     {getIntegrationStatus("google_calendar") === "connected" ? (
-                      <span className="px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-400 text-xs font-medium">
-                        Connected
-                      </span>
+                      <div className="flex items-center gap-2">
+                        <span className="px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-400 text-xs font-medium">
+                          Connected
+                        </span>
+                        <button
+                          onClick={() => handleDisconnectIntegration("google_calendar")}
+                          disabled={connectingIntegration === "google_calendar"}
+                          className="px-3 py-1 rounded-lg text-slate-400 hover:text-red-400 text-xs transition-colors disabled:opacity-50"
+                        >
+                          Disconnect
+                        </button>
+                      </div>
                     ) : (
-                      <button className="px-4 py-2 rounded-lg bg-white text-black text-sm font-medium hover:bg-slate-200 transition-colors">
-                        Connect
+                      <button
+                        onClick={() => handleConnectIntegration("google_calendar")}
+                        disabled={connectingIntegration === "google_calendar"}
+                        className="px-4 py-2 rounded-lg bg-white text-black text-sm font-medium hover:bg-slate-200 transition-colors disabled:opacity-50 flex items-center gap-2"
+                      >
+                        {connectingIntegration === "google_calendar" ? (
+                          <>
+                            <Loader2 className="w-4 h-4 animate-spin" />
+                            Connecting...
+                          </>
+                        ) : (
+                          "Connect"
+                        )}
                       </button>
                     )}
                   </div>
                 </div>
+              </div>
+
+              {/* Info about integrations */}
+              <div className="p-4 rounded-lg bg-sky-500/10 border border-sky-500/20">
+                <p className="text-sm text-sky-300">
+                  <strong>Note:</strong> ShowingTime uses mock mode for development until MLS partnership credentials are available.
+                  Google Calendar requires a service account to be configured in the environment.
+                </p>
               </div>
             </div>
           )}

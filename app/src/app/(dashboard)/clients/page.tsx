@@ -175,7 +175,7 @@ export default function ClientsPage() {
       </div>
 
       {/* Client List */}
-      <div className="glass-card rounded-xl overflow-hidden">
+      <div className="glass-card rounded-xl overflow-visible">
         {/* Table Header */}
         <div className="grid grid-cols-12 gap-4 px-6 py-4 border-b border-white/10 text-xs font-medium text-slate-500 uppercase tracking-wider">
           <div className="col-span-4 flex items-center gap-1 cursor-pointer hover:text-white">

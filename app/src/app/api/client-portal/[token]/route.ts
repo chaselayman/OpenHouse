@@ -52,6 +52,8 @@ export async function GET(
         photos,
         description,
         highlights,
+        mls_id,
+        listing_url,
         red_flags,
         analyzed_at
       )
@@ -78,6 +80,8 @@ export async function GET(
       photos: string[] | null;
       description: string | null;
       highlights: string[] | null;
+      mls_id: string | null;
+      listing_url: string | null;
       red_flags: string[] | null;
       analyzed_at: string | null;
     };
