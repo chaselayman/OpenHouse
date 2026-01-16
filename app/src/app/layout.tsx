@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
+import { ThemeProvider } from "@/components/providers/ThemeProvider";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -8,8 +9,8 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "OpenHouse - AI Showing Assistant for Real Estate Agents",
-  description: "Automate property research, AI-vet listings for red flags, and let clients book showings instantly. Save 4 hours per client.",
+  title: "RealtorFlow - Automation Marketplace for Real Estate Agents",
+  description: "Automate your real estate business with BigDayBot, ReviewDrip, LeadRevive, TouchBase, and OpenHouse. Save hours every week.",
 };
 
 export default function RootLayout({
@@ -18,9 +19,11 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
-      <body className={`${inter.variable} antialiased bg-[#050507] text-slate-300`}>
-        {children}
+    <html lang="en" suppressHydrationWarning>
+      <body className={`${inter.variable} antialiased`}>
+        <ThemeProvider>
+          {children}
+        </ThemeProvider>
       </body>
     </html>
   );

@@ -2,10 +2,10 @@ import { NextRequest, NextResponse } from "next/server";
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
 import {
-  createBridgeClient,
-  createDemoBridgeClient,
-  BridgeSearchParams,
-} from "@/lib/services/bridge";
+  createSimplyRetsClient,
+  createDemoSimplyRetsClient,
+  SimplyRetsSearchParams,
+} from "@/lib/services/simplyrets";
 
 export async function GET(request: NextRequest) {
   try {
@@ -39,54 +39,59 @@ export async function GET(request: NextRequest) {
     // Parse search params from URL
     const searchParams = request.nextUrl.searchParams;
 
-    const params: BridgeSearchParams = {
-      top: Math.min(parseInt(searchParams.get("limit") || "50"), 100),
+    const params: SimplyRetsSearchParams = {
+      limit: Math.min(parseInt(searchParams.get("limit") || "50"), 100),
     };
 
-    // Text search
+    // Text search (address, city, etc.)
     if (searchParams.get("q")) {
       params.q = searchParams.get("q")!;
     }
 
     // Status filter - default to Active
-    const status = searchParams.getAll("status");
-    if (status.length > 0) {
-      params.status = status as BridgeSearchParams["status"];
+    const status = searchParams.get("status");
+    if (status) {
+      params.status = status as SimplyRetsSearchParams["status"];
     } else {
-      params.status = ["Active"];
+      params.status = "Active";
     }
 
     // Property type filter
-    const type = searchParams.getAll("type");
-    if (type.length > 0) {
-      params.propertyType = type as BridgeSearchParams["propertyType"];
+    const type = searchParams.get("type");
+    if (type) {
+      params.type = type as SimplyRetsSearchParams["type"];
     }
 
     // Price range
     if (searchParams.get("minprice")) {
-      params.minPrice = parseInt(searchParams.get("minprice")!);
+      params.minprice = parseInt(searchParams.get("minprice")!);
     }
     if (searchParams.get("maxprice")) {
-      params.maxPrice = parseInt(searchParams.get("maxprice")!);
+      params.maxprice = parseInt(searchParams.get("maxprice")!);
     }
 
     // Beds/Baths
     if (searchParams.get("minbeds")) {
-      params.minBeds = parseInt(searchParams.get("minbeds")!);
+      params.minbeds = parseInt(searchParams.get("minbeds")!);
     }
     if (searchParams.get("maxbeds")) {
-      params.maxBeds = parseInt(searchParams.get("maxbeds")!);
+      params.maxbeds = parseInt(searchParams.get("maxbeds")!);
     }
     if (searchParams.get("minbaths")) {
-      params.minBaths = parseInt(searchParams.get("minbaths")!);
+      params.minbaths = parseInt(searchParams.get("minbaths")!);
     }
 
-    // Area
+    // Area (sqft)
     if (searchParams.get("minarea")) {
-      params.minArea = parseInt(searchParams.get("minarea")!);
+      params.minarea = parseInt(searchParams.get("minarea")!);
     }
     if (searchParams.get("maxarea")) {
-      params.maxArea = parseInt(searchParams.get("maxarea")!);
+      params.maxarea = parseInt(searchParams.get("maxarea")!);
+    }
+
+    // Year built
+    if (searchParams.get("minyear")) {
+      params.minyear = parseInt(searchParams.get("minyear")!);
     }
 
     // Location filters
@@ -98,34 +103,34 @@ export async function GET(request: NextRequest) {
     if (postalCodes.length > 0) {
       params.postalCodes = postalCodes;
     }
-    if (searchParams.get("state")) {
-      params.stateOrProvince = searchParams.get("state")!;
+    const counties = searchParams.getAll("counties");
+    if (counties.length > 0) {
+      params.counties = counties;
     }
 
     // Pagination
-    if (searchParams.get("skip")) {
-      params.skip = parseInt(searchParams.get("skip")!);
+    if (searchParams.get("offset")) {
+      params.offset = parseInt(searchParams.get("offset")!);
     }
 
-    // Sorting
+    // Sorting (e.g., "-listprice" for descending, "listprice" for ascending)
     if (searchParams.get("sort")) {
-      params.orderBy = searchParams.get("sort")!;
+      params.sort = searchParams.get("sort")!;
     }
 
-    // Use demo client if no credentials configured, otherwise use real credentials
-    let client;
-    try {
-      client = createBridgeClient();
-    } catch {
-      // Fall back to demo client for development
-      client = createDemoBridgeClient();
-    }
+    // Use real client if credentials configured, otherwise demo
+    const client = createSimplyRetsClient() || createDemoSimplyRetsClient();
 
-    const result = await client.searchProperties(params);
+    // Search and normalize results
+    const listings = await client.search(params);
 
     return NextResponse.json({
-      listings: result.listings,
-      totalCount: result.totalCount,
+      listings,
+      count: listings.length,
+      params: {
+        ...params,
+        usingDemo: !createSimplyRetsClient(),
+      },
     });
   } catch (error) {
     console.error("MLS search error:", error);

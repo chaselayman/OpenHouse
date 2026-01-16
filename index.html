@@ -1,7 +1,7 @@
 <html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>OpenHouse — The AI Showing Assistant for Modern Agents</title>
-<meta name="description" content="Automate property research, AI-vet listings for red flags, and let clients book showings instantly. Save 4 hours per client.">
+<title>RealtorFlow — The Automation Marketplace for Modern Agents</title>
+<meta name="description" content="Build your perfect automation stack. OpenHouse, LeadRevive, TouchBase, ReviewDrip, BigDayBot — only pay for what you need.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet">
@@ -11,7 +11,7 @@
 <style>
   body { font-family: 'Inter', sans-serif; }
   h1, h2, h3, h4, h5, h6 { font-family: 'Plus Jakarta Sans', sans-serif; }
-  
+
   /* Glass Card */
   .glass-card { background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.08); }
   .glass-card:hover { background: rgba(255, 255, 255, 0.05); border-color: rgba(255, 255, 255, 0.15); }
@@ -49,26 +49,21 @@
   .animation-delay-2000 { animation-delay: 2s; }
   .animation-delay-4000 { animation-delay: 4s; }
 
-  /* Noodle/Line Animation */
-  @keyframes dash {
-    to { stroke-dashoffset: 0; }
+  /* Product Card Hover */
+  .product-card {
+    transition: all 0.3s ease;
   }
-  .animate-draw {
-    stroke-dasharray: 1000;
-    stroke-dashoffset: 1000;
-    animation: dash 5s linear infinite alternate;
-  }
-  .noodle-path {
-    filter: drop-shadow(0 0 8px rgba(56, 189, 248, 0.5));
+  .product-card:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 20px 40px -15px rgba(0,0,0,0.5);
   }
 
-  /* 3D House Float Animation */
-  @keyframes float-house {
-    0%, 100% { transform: translateY(0px) rotate(0deg); }
-    50% { transform: translateY(-20px) rotate(1deg); }
+  /* Price tag animation */
+  @keyframes pulse-glow {
+    0%, 100% { box-shadow: 0 0 20px rgba(16, 185, 129, 0.3); }
+    50% { box-shadow: 0 0 30px rgba(16, 185, 129, 0.5); }
   }
-  .animate-float-house { animation: float-house 12s ease-in-out infinite; }
-  .animate-float-house-delayed { animation: float-house 15s ease-in-out infinite reverse; }
+  .price-glow { animation: pulse-glow 2s infinite; }
 
 </style>
 </head>
@@ -76,10 +71,10 @@
 
     <!-- Complex Animated Background -->
     <div class="fixed inset-0 overflow-hidden pointer-events-none z-0">
-      
+
       <!-- 1. The Grid -->
       <div class="absolute inset-0 grid-bg opacity-30"></div>
-      
+
       <!-- 2. The Beam Scanner -->
       <div class="absolute inset-0 overflow-hidden opacity-30">
         <div class="beam w-full h-[50vh]"></div>
@@ -89,66 +84,6 @@
       <div class="absolute top-0 left-1/4 w-[600px] h-[600px] bg-sky-500/20 rounded-full blur-[120px] mix-blend-screen animate-blob opacity-40"></div>
       <div class="absolute top-0 right-1/4 w-[500px] h-[500px] bg-emerald-500/20 rounded-full blur-[120px] mix-blend-screen animate-blob animation-delay-2000 opacity-30"></div>
       <div class="absolute -bottom-32 left-1/3 w-[600px] h-[600px] bg-indigo-500/20 rounded-full blur-[120px] mix-blend-screen animate-blob animation-delay-4000 opacity-30"></div>
-
-      <!-- 4. 3D House Wireframes (New Layer) -->
-      <svg class="absolute inset-0 w-full h-full opacity-20" preserveAspectRatio="xMidYMid slice" viewBox="0 0 1920 1080">
-        <defs>
-          <linearGradient id="houseGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" style="stop-color:rgba(255,255,255,0.1)"></stop>
-            <stop offset="100%" style="stop-color:rgba(255,255,255,0.02)"></stop>
-          </linearGradient>
-        </defs>
-
-        <!-- Large House Left (Rotated) -->
-        <g class="animate-float-house text-slate-700" transform="translate(100, 300) scale(1.5)" stroke="currentColor" stroke-width="1" fill="none">
-          <!-- Roof -->
-          <path d="M100 0 L200 50 L100 100 L0 50 Z"></path>
-          <!-- Walls -->
-          <path d="M0 50 L0 150 L100 200 L200 150 L200 50"></path>
-          <!-- Inner Corner -->
-          <path d="M100 100 L100 200"></path>
-          <!-- Door outline hint -->
-          <path d="M130 185 L130 140 L160 125 L160 170" opacity="0.5"></path>
-        </g>
-
-        <!-- House Right Top (Smaller, Distant) -->
-        <g class="animate-float-house-delayed text-slate-800" transform="translate(1600, 100) scale(0.8)" stroke="currentColor" stroke-width="1.5" fill="none">
-          <path d="M80 0 L160 40 L80 80 L0 40 Z"></path>
-          <path d="M0 40 L0 120 L80 160 L160 120 L160 40"></path>
-          <path d="M80 80 L80 160"></path>
-        </g>
-
-        <!-- House Bottom Center (Wireframe Stack) -->
-        <g class="animate-float-house text-slate-800" transform="translate(1200, 800) scale(1.2)" stroke="currentColor" stroke-width="1" fill="none" opacity="0.5">
-           <!-- Main Block -->
-           <path d="M100 20 L180 60 L100 100 L20 60 Z"></path>
-           <path d="M20 60 L20 180 L100 220 L180 180 L180 60"></path>
-           <path d="M100 100 L100 220"></path>
-           <!-- Garage/Annex -->
-           <path d="M180 180 L240 150 L240 80 L180 110" opacity="0.7"></path>
-        </g>
-      </svg>
-
-      <!-- 5. "Noodles" / Connecting Lines -->
-      <svg class="absolute inset-0 w-full h-full opacity-30" preserveAspectRatio="none">
-        <defs>
-          <linearGradient id="grad1" x1="0%" y1="0%" x2="100%" y2="0%">
-            <stop offset="0%" style="stop-color:rgba(14, 165, 233, 0);stop-opacity:0"></stop>
-            <stop offset="50%" style="stop-color:rgba(14, 165, 233, 0.5);stop-opacity:1"></stop>
-            <stop offset="100%" style="stop-color:rgba(14, 165, 233, 0);stop-opacity:0"></stop>
-          </linearGradient>
-          <linearGradient id="grad2" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" style="stop-color:rgba(16, 185, 129, 0);stop-opacity:0"></stop>
-            <stop offset="50%" style="stop-color:rgba(16, 185, 129, 0.4);stop-opacity:1"></stop>
-            <stop offset="100%" style="stop-color:rgba(16, 185, 129, 0);stop-opacity:0"></stop>
-          </linearGradient>
-        </defs>
-        <!-- Top Curve -->
-        <path d="M0,100 Q400,300 800,100 T1600,200" fill="none" stroke="url(#grad1)" stroke-width="2" class="noodle-path animate-draw opacity-50"></path>
-        <!-- Bottom Cross -->
-        <path d="M-100,600 C200,400 600,800 1200,500" fill="none" stroke="url(#grad2)" stroke-width="2" class="noodle-path animate-draw opacity-30" style="animation-duration: 8s;"></path>
-        <path d="M1200,0 C900,300 600,100 200,400" fill="none" stroke="url(#grad1)" stroke-width="1" class="noodle-path animate-draw opacity-20" style="animation-delay: 1s; animation-duration: 12s;"></path>
-      </svg>
     </div>
 
     <!-- Nav -->
@@ -156,22 +91,22 @@
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="flex h-16 items-center justify-between">
           <a href="#" class="flex items-center gap-2.5">
-            <div class="flex h-9 w-9 items-center justify-center rounded-xl bg-white text-black shadow-[0_0_15px_rgba(255,255,255,0.3)]">
-              <i data-lucide="home" class="w-5 h-5 fill-current"></i>
+            <div class="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-sky-500 to-emerald-500 text-white shadow-[0_0_15px_rgba(14,165,233,0.4)]">
+              <i data-lucide="zap" class="w-5 h-5"></i>
             </div>
-            <span class="text-lg font-bold tracking-tight text-white">OpenHouse</span>
+            <span class="text-lg font-bold tracking-tight text-white">RealtorFlow</span>
           </a>
 
           <nav class="hidden md:flex gap-1 border border-white/5 rounded-full px-2 py-1 bg-white/5 backdrop-blur-md shadow-lg shadow-black/20">
+            <a href="#automations" class="px-4 py-1.5 text-sm font-medium text-slate-300 hover:text-white transition-colors">Automations</a>
             <a href="#how-it-works" class="px-4 py-1.5 text-sm font-medium text-slate-300 hover:text-white transition-colors">How it Works</a>
-            <a href="#features" class="px-4 py-1.5 text-sm font-medium text-slate-300 hover:text-white transition-colors">Features</a>
             <a href="#pricing" class="px-4 py-1.5 text-sm font-medium text-slate-300 hover:text-white transition-colors">Pricing</a>
           </nav>
 
           <div class="flex gap-3 items-center">
             <a href="#" class="hidden sm:block text-sm font-medium text-slate-300 hover:text-white transition-colors">Login</a>
             <a href="#pricing" class="inline-flex h-9 items-center justify-center rounded-lg bg-white px-4 text-sm font-semibold text-black transition hover:bg-slate-200 focus:outline-none focus:ring-2 focus:ring-slate-400 focus:ring-offset-2 focus:ring-offset-slate-900 shadow-[0_0_20px_rgba(255,255,255,0.2)]">
-              Start Free Trial
+              Build Your Stack
             </a>
           </div>
         </div>
@@ -181,369 +116,417 @@
     <!-- Hero -->
     <section class="relative z-10 pt-20 pb-32 lg:pt-32">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative">
-        
-        <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-sky-500/30 bg-sky-500/10 text-sky-400 text-xs font-medium mb-8 backdrop-blur-md shadow-[0_0_15px_rgba(14,165,233,0.3)]">
+
+        <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-emerald-500/30 bg-emerald-500/10 text-emerald-400 text-xs font-medium mb-8 backdrop-blur-md shadow-[0_0_15px_rgba(16,185,129,0.3)]">
           <span class="relative flex h-2 w-2">
-            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-sky-400 opacity-75"></span>
-            <span class="relative inline-flex rounded-full h-2 w-2 bg-sky-500"></span>
+            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+            <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
           </span>
-          New: ShowingTime Integration is live
+          5 Powerful Automations — Pay Only For What You Need
         </div>
 
         <h1 class="text-5xl sm:text-6xl lg:text-7xl font-bold tracking-tight text-white mb-6 drop-shadow-2xl">
-          Give it an email.<br>
-          <span class="text-transparent bg-clip-text bg-gradient-to-r from-sky-300 via-white to-emerald-300 animate-pulse">Just show up to showings.</span>
+          Your Automation.<br>
+          <span class="text-transparent bg-clip-text bg-gradient-to-r from-sky-300 via-white to-emerald-300">Your Stack. Your Way.</span>
         </h1>
-        
+
         <p class="max-w-2xl mx-auto text-lg text-slate-400 mb-10 leading-relaxed drop-shadow-sm">
-          The AI assistant that scrapes MLS, vets photos for red flags, and lets your clients book instant showings. Save 2-4 hours per client.
+          The realtor automation marketplace built for modern agents. Pick the automations you need, skip the ones you don't. Scale your business on autopilot.
         </p>
 
         <div class="flex flex-col sm:flex-row gap-4 justify-center items-center mb-16">
-          <a href="#pricing" class="h-12 px-8 rounded-full bg-white text-black font-semibold text-sm flex items-center gap-2 hover:scale-105 transition-transform duration-200 shadow-[0_0_40px_-10px_rgba(255,255,255,0.4)] hover:shadow-[0_0_50px_-5px_rgba(255,255,255,0.5)]">
-            Start 14-day free trial
+          <a href="#automations" class="h-12 px-8 rounded-full bg-white text-black font-semibold text-sm flex items-center gap-2 hover:scale-105 transition-transform duration-200 shadow-[0_0_40px_-10px_rgba(255,255,255,0.4)] hover:shadow-[0_0_50px_-5px_rgba(255,255,255,0.5)]">
+            Explore Automations
             <i data-lucide="arrow-right" class="w-4 h-4"></i>
           </a>
-          <button class="h-12 px-8 rounded-full border border-white/10 bg-white/5 text-white font-medium text-sm flex items-center gap-2 hover:bg-white/10 transition-colors backdrop-blur-sm">
-            <i data-lucide="play-circle" class="w-4 h-4"></i>
-            Watch how it works
-          </button>
+          <a href="#pricing" class="h-12 px-8 rounded-full border border-white/10 bg-white/5 text-white font-medium text-sm flex items-center gap-2 hover:bg-white/10 transition-colors backdrop-blur-sm">
+            <i data-lucide="calculator" class="w-4 h-4"></i>
+            Build Your Bundle
+          </a>
         </div>
 
-        <!-- UI Preview Dashboard -->
-        <div class="relative max-w-5xl mx-auto rounded-xl border border-white/10 bg-[#0A0A0F]/80 shadow-[0_0_50px_-15px_rgba(0,0,0,0.5)] overflow-hidden group backdrop-blur-sm">
-          <div class="absolute top-0 w-full h-px bg-gradient-to-r from-transparent via-white/20 to-transparent"></div>
-          
-          <!-- Fake Browser Header -->
-          <div class="h-10 border-b border-white/5 bg-white/[0.02] flex items-center px-4 gap-2">
-            <div class="flex gap-1.5">
-              <div class="w-2.5 h-2.5 rounded-full bg-red-500/20 border border-red-500/50"></div>
-              <div class="w-2.5 h-2.5 rounded-full bg-yellow-500/20 border border-yellow-500/50"></div>
-              <div class="w-2.5 h-2.5 rounded-full bg-green-500/20 border border-green-500/50"></div>
-            </div>
-            <div class="ml-4 px-3 py-1 rounded-md bg-black/40 border border-white/5 text-[10px] text-slate-500 font-mono w-64 flex items-center justify-between">
-              openhouse.ai/dashboard/client/sarah-jenkins
-              <i data-lucide="lock" class="w-2.5 h-2.5"></i>
-            </div>
-          </div>
-
-          <div class="flex h-[500px] text-left">
-            <!-- Sidebar -->
-            <div class="w-64 border-r border-white/5 bg-[#0B0C10]/90 p-4 hidden md:block">
-              <div class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-4">Active Clients</div>
-              <div class="space-y-1">
-                <div class="flex items-center gap-3 p-2 rounded-lg bg-white/5 border border-white/5 text-white">
-                  <div class="w-8 h-8 rounded-full bg-gradient-to-br from-pink-500 to-rose-500 flex items-center justify-center text-xs font-bold shadow-lg shadow-rose-900/20">SJ</div>
-                  <div class="flex-1 min-w-0">
-                    <div class="text-sm font-medium truncate">Sarah Jenkins</div>
-                    <div class="text-[10px] text-emerald-400">3 Showings Booked</div>
-                  </div>
-                </div>
-                <div class="flex items-center gap-3 p-2 rounded-lg hover:bg-white/5 text-slate-400 transition-colors opacity-60">
-                  <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-xs">MK</div>
-                  <div class="flex-1 min-w-0">
-                    <div class="text-sm font-medium truncate">Mike Kogan</div>
-                    <div class="text-[10px] text-slate-500">Searching...</div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <!-- Main Content -->
-            <div class="flex-1 bg-[#050507]/90 p-6 overflow-hidden relative">
-              <div class="flex justify-between items-center mb-6">
-                <div>
-                  <h2 class="text-xl font-semibold text-white">Matches for Sarah</h2>
-                  <p class="text-xs text-slate-400">3 bed, 2 bath • South Austin • Under $650k</p>
-                </div>
-                <div class="flex items-center gap-2">
-                  <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-emerald-500/10 text-emerald-400 text-xs border border-emerald-500/20 shadow-[0_0_10px_rgba(16,185,129,0.1)]">
-                    <i data-lucide="check-circle-2" class="w-3 h-3"></i> Sync Active
-                  </span>
-                </div>
-              </div>
-
-              <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <!-- Property Card 1 (Good) -->
-                <div class="rounded-xl border border-white/10 bg-white/[0.02] overflow-hidden group/card hover:border-white/20 transition-all shadow-lg hover:shadow-xl hover:shadow-sky-900/10">
-                  <div class="h-40 bg-slate-800 relative overflow-hidden">
-                     <div class="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1600596542815-27b88e54e60d?auto=format&amp;fit=crop&amp;q=80&amp;w=800')] bg-cover bg-center opacity-60 group-hover/card:scale-105 transition-transform duration-500"></div>
-                     <div class="absolute top-3 left-3 px-2 py-1 bg-black/60 backdrop-blur rounded text-[10px] text-white font-medium border border-white/10">
-                       MLS #182392
-                     </div>
-                     <div class="absolute bottom-3 right-3 px-2 py-1 bg-emerald-500 text-black rounded text-[10px] font-bold flex items-center gap-1 shadow-[0_0_15px_rgba(16,185,129,0.5)]">
-                       <i data-lucide="sparkles" class="w-3 h-3"></i> 94% Match
-                     </div>
-                  </div>
-                  <div class="p-4">
-                    <div class="flex justify-between items-start mb-2">
-                      <h3 class="text-sm font-semibold text-white">2401 Eva St</h3>
-                      <span class="text-sm font-mono text-slate-300">$625,000</span>
-                    </div>
-                    <p class="text-[11px] text-slate-400 leading-relaxed mb-3">
-                      <span class="text-sky-300 font-medium">AI Note:</span> Perfect layout for Sarah's home office requirement. Backyard faces South (good light).
-                    </p>
-                    <div class="flex gap-2">
-                      <button class="flex-1 py-1.5 rounded bg-white text-black text-xs font-medium hover:bg-slate-200 transition-colors">Approve &amp; Send</button>
-                      <button class="px-2 py-1.5 rounded border border-white/10 hover:bg-white/5 text-slate-400 transition-colors">
-                        <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
-                      </button>
-                    </div>
-                  </div>
-                </div>
-
-                <!-- Property Card 2 (Bad/Red Flag) -->
-                <div class="rounded-xl border border-red-500/20 bg-red-500/[0.02] overflow-hidden relative">
-                  <!-- Vision Analysis Overlay -->
-                  <div class="absolute top-8 left-8 w-20 h-20 border-2 border-red-500 rounded-lg shadow-[0_0_20px_rgba(239,68,68,0.4)] z-20 flex items-start justify-end p-1 animate-pulse">
-                    <span class="bg-red-500 text-white text-[8px] font-bold px-1 rounded shadow-lg">DAMAGE</span>
-                  </div>
-                  
-                  <div class="h-40 bg-slate-800 relative overflow-hidden grayscale-[50%]">
-                     <div class="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1574872956277-27038e23f044?auto=format&amp;fit=crop&amp;q=80&amp;w=800')] bg-cover bg-center opacity-40"></div>
-                     <div class="absolute inset-0 bg-red-500/10 mix-blend-overlay"></div>
-                  </div>
-                  <div class="p-4">
-                    <div class="flex justify-between items-start mb-2">
-                      <h3 class="text-sm font-semibold text-slate-300 line-through decoration-slate-500">1822 Maple Ave</h3>
-                      <span class="text-sm font-mono text-slate-400">$595,000</span>
-                    </div>
-                    <div class="p-2 rounded bg-red-500/10 border border-red-500/20 mb-3">
-                      <div class="flex items-center gap-2 text-xs font-semibold text-red-400 mb-1">
-                        <i data-lucide="alert-triangle" class="w-3 h-3"></i> AI Alert Detected
-                      </div>
-                      <p class="text-[10px] text-red-300/80">
-                        Possible water damage on ceiling in photo 4. Foundation crack visible in exterior shot.
-                      </p>
-                    </div>
-                    <button class="w-full py-1.5 rounded border border-white/10 text-slate-500 text-xs font-medium cursor-not-allowed opacity-50">Auto-Filtered</button>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
+        <!-- Quick Product Preview -->
+        <div class="flex flex-wrap justify-center gap-3 mb-12">
+          <span class="px-4 py-2 rounded-full bg-sky-500/10 border border-sky-500/20 text-sky-400 text-sm font-medium">OpenHouse</span>
+          <span class="px-4 py-2 rounded-full bg-orange-500/10 border border-orange-500/20 text-orange-400 text-sm font-medium">LeadRevive</span>
+          <span class="px-4 py-2 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-sm font-medium">TouchBase</span>
+          <span class="px-4 py-2 rounded-full bg-purple-500/10 border border-purple-500/20 text-purple-400 text-sm font-medium">ReviewDrip</span>
+          <span class="px-4 py-2 rounded-full bg-pink-500/10 border border-pink-500/20 text-pink-400 text-sm font-medium">BigDayBot</span>
         </div>
 
-        <div class="mt-12 pt-8 border-t border-white/5 flex flex-wrap justify-center gap-x-8 gap-y-4 opacity-50 grayscale hover:grayscale-0 transition-all duration-500">
+        <div class="mt-8 pt-8 border-t border-white/5 flex flex-wrap justify-center gap-x-8 gap-y-4 opacity-50 grayscale hover:grayscale-0 transition-all duration-500">
           <div class="flex items-center gap-2 text-sm font-semibold text-white"><i data-lucide="building" class="w-5 h-5"></i> KW KELLER WILLIAMS</div>
           <div class="flex items-center gap-2 text-sm font-semibold text-white"><i data-lucide="home" class="w-5 h-5"></i> RE/MAX</div>
           <div class="flex items-center gap-2 text-sm font-semibold text-white"><i data-lucide="key" class="w-5 h-5"></i> eXp Realty</div>
-          <div class="flex items-center gap-2 text-sm font-semibold text-white"><i data-lucide="calendar-check" class="w-5 h-5"></i> ShowingTime</div>
+          <div class="flex items-center gap-2 text-sm font-semibold text-white"><i data-lucide="users" class="w-5 h-5"></i> Coldwell Banker</div>
         </div>
       </div>
     </section>
 
-    <!-- Problem Statement -->
+    <!-- Value Prop -->
     <section class="py-24 bg-[#0B0C10]/60 border-y border-white/5 backdrop-blur-md relative z-10">
       <div class="max-w-4xl mx-auto px-4 text-center">
-        <h2 class="text-3xl font-bold text-white mb-6">Stop playing scheduling Tetris.</h2>
+        <h2 class="text-3xl font-bold text-white mb-6">Stop paying for tools you don't use.</h2>
         <p class="text-lg text-slate-400">
-          You didn't get into real estate to refresh the MLS every hour, squint at blurry listing photos, and play email tag with listing agents. 
-          <span class="text-white">Let AI handle the grunt work so you can focus on closing.</span>
+          Most CRMs force you into bloated packages with features you'll never touch.
+          <span class="text-white">RealtorFlow lets you build the exact automation stack you need — nothing more, nothing less.</span>
         </p>
+      </div>
+    </section>
+
+    <!-- Automations Marketplace -->
+    <section id="automations" class="py-24 relative overflow-hidden z-10">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+        <div class="text-center mb-16">
+          <h2 class="text-3xl font-bold text-white mb-4">The Automation Marketplace</h2>
+          <p class="text-slate-400">Five powerful tools. Mix and match to build your perfect workflow.</p>
+        </div>
+
+        <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+
+          <!-- OpenHouse -->
+          <div class="product-card glass-card rounded-3xl overflow-hidden">
+            <div class="h-2 bg-gradient-to-r from-sky-500 to-cyan-500"></div>
+            <div class="p-8">
+              <div class="flex items-center justify-between mb-6">
+                <div class="w-14 h-14 rounded-2xl bg-sky-500/10 border border-sky-500/20 flex items-center justify-center">
+                  <i data-lucide="home" class="w-7 h-7 text-sky-400"></i>
+                </div>
+                <span class="px-3 py-1 rounded-full bg-sky-500/10 text-sky-400 text-xs font-bold">SHOWINGS</span>
+              </div>
+              <h3 class="text-2xl font-bold text-white mb-3">OpenHouse</h3>
+              <p class="text-slate-400 mb-6 leading-relaxed">
+                Autoscheduling for ShowingTime. AI scrapes MLS, vets listing photos for red flags, and lets clients book showings instantly.
+              </p>
+              <ul class="space-y-3 mb-8">
+                <li class="flex items-center gap-3 text-sm text-slate-300">
+                  <i data-lucide="check" class="w-4 h-4 text-sky-400"></i> AI Photo Analysis
+                </li>
+                <li class="flex items-center gap-3 text-sm text-slate-300">
+                  <i data-lucide="check" class="w-4 h-4 text-sky-400"></i> ShowingTime Integration
+                </li>
+                <li class="flex items-center gap-3 text-sm text-slate-300">
+                  <i data-lucide="check" class="w-4 h-4 text-sky-400"></i> Client Self-Booking Portal
+                </li>
+              </ul>
+              <div class="flex items-center justify-between pt-6 border-t border-white/5">
+                <div>
+                  <span class="text-3xl font-bold text-white">$29</span>
+                  <span class="text-slate-500">/mo</span>
+                </div>
+                <a href="#" class="px-6 py-2 rounded-lg bg-sky-500 text-white font-semibold text-sm hover:bg-sky-400 transition-colors">Add to Stack</a>
+              </div>
+            </div>
+          </div>
+
+          <!-- LeadRevive -->
+          <div class="product-card glass-card rounded-3xl overflow-hidden">
+            <div class="h-2 bg-gradient-to-r from-orange-500 to-amber-500"></div>
+            <div class="p-8">
+              <div class="flex items-center justify-between mb-6">
+                <div class="w-14 h-14 rounded-2xl bg-orange-500/10 border border-orange-500/20 flex items-center justify-center">
+                  <i data-lucide="flame" class="w-7 h-7 text-orange-400"></i>
+                </div>
+                <span class="px-3 py-1 rounded-full bg-orange-500/10 text-orange-400 text-xs font-bold">LEADS</span>
+              </div>
+              <h3 class="text-2xl font-bold text-white mb-3">LeadRevive</h3>
+              <p class="text-slate-400 mb-6 leading-relaxed">
+                Revive cold leads with automated, personalized messages. Re-engage prospects who went dark and convert them into active buyers.
+              </p>
+              <ul class="space-y-3 mb-8">
+                <li class="flex items-center gap-3 text-sm text-slate-300">
+                  <i data-lucide="check" class="w-4 h-4 text-orange-400"></i> Smart Re-engagement Sequences
+                </li>
+                <li class="flex items-center gap-3 text-sm text-slate-300">
+                  <i data-lucide="check" class="w-4 h-4 text-orange-400"></i> Personalized AI Messages
+                </li>
+                <li class="flex items-center gap-3 text-sm text-slate-300">
+                  <i data-lucide="check" class="w-4 h-4 text-orange-400"></i> Response Tracking
+                </li>
+              </ul>
+              <div class="flex items-center justify-between pt-6 border-t border-white/5">
+                <div>
+                  <span class="text-3xl font-bold text-white">$19</span>
+                  <span class="text-slate-500">/mo</span>
+                </div>
+                <a href="#" class="px-6 py-2 rounded-lg bg-orange-500 text-white font-semibold text-sm hover:bg-orange-400 transition-colors">Add to Stack</a>
+              </div>
+            </div>
+          </div>
+
+          <!-- TouchBase -->
+          <div class="product-card glass-card rounded-3xl overflow-hidden">
+            <div class="h-2 bg-gradient-to-r from-emerald-500 to-green-500"></div>
+            <div class="p-8">
+              <div class="flex items-center justify-between mb-6">
+                <div class="w-14 h-14 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center">
+                  <i data-lucide="trending-up" class="w-7 h-7 text-emerald-400"></i>
+                </div>
+                <span class="px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-400 text-xs font-bold">SELLERS</span>
+              </div>
+              <h3 class="text-2xl font-bold text-white mb-3">TouchBase</h3>
+              <p class="text-slate-400 mb-6 leading-relaxed">
+                Automated Cost Analysis emails to Sellers. Keep your listings informed with market updates and property valuations on autopilot.
+              </p>
+              <ul class="space-y-3 mb-8">
+                <li class="flex items-center gap-3 text-sm text-slate-300">
+                  <i data-lucide="check" class="w-4 h-4 text-emerald-400"></i> CMA Report Generation
+                </li>
+                <li class="flex items-center gap-3 text-sm text-slate-300">
+                  <i data-lucide="check" class="w-4 h-4 text-emerald-400"></i> Market Update Emails
+                </li>
+                <li class="flex items-center gap-3 text-sm text-slate-300">
+                  <i data-lucide="check" class="w-4 h-4 text-emerald-400"></i> Automated Seller Nurturing
+                </li>
+              </ul>
+              <div class="flex items-center justify-between pt-6 border-t border-white/5">
+                <div>
+                  <span class="text-3xl font-bold text-white">$24</span>
+                  <span class="text-slate-500">/mo</span>
+                </div>
+                <a href="#" class="px-6 py-2 rounded-lg bg-emerald-500 text-white font-semibold text-sm hover:bg-emerald-400 transition-colors">Add to Stack</a>
+              </div>
+            </div>
+          </div>
+
+          <!-- ReviewDrip -->
+          <div class="product-card glass-card rounded-3xl overflow-hidden">
+            <div class="h-2 bg-gradient-to-r from-purple-500 to-violet-500"></div>
+            <div class="p-8">
+              <div class="flex items-center justify-between mb-6">
+                <div class="w-14 h-14 rounded-2xl bg-purple-500/10 border border-purple-500/20 flex items-center justify-center">
+                  <i data-lucide="star" class="w-7 h-7 text-purple-400"></i>
+                </div>
+                <span class="px-3 py-1 rounded-full bg-purple-500/10 text-purple-400 text-xs font-bold">REVIEWS</span>
+              </div>
+              <h3 class="text-2xl font-bold text-white mb-3">ReviewDrip</h3>
+              <p class="text-slate-400 mb-6 leading-relaxed">
+                Client & Friend Reminders for Google Reviews. Automated, perfectly-timed asks that boost your online reputation effortlessly.
+              </p>
+              <ul class="space-y-3 mb-8">
+                <li class="flex items-center gap-3 text-sm text-slate-300">
+                  <i data-lucide="check" class="w-4 h-4 text-purple-400"></i> Smart Timing Algorithm
+                </li>
+                <li class="flex items-center gap-3 text-sm text-slate-300">
+                  <i data-lucide="check" class="w-4 h-4 text-purple-400"></i> Google Review Links
+                </li>
+                <li class="flex items-center gap-3 text-sm text-slate-300">
+                  <i data-lucide="check" class="w-4 h-4 text-purple-400"></i> Follow-up Sequences
+                </li>
+              </ul>
+              <div class="flex items-center justify-between pt-6 border-t border-white/5">
+                <div>
+                  <span class="text-3xl font-bold text-white">$14</span>
+                  <span class="text-slate-500">/mo</span>
+                </div>
+                <a href="#" class="px-6 py-2 rounded-lg bg-purple-500 text-white font-semibold text-sm hover:bg-purple-400 transition-colors">Add to Stack</a>
+              </div>
+            </div>
+          </div>
+
+          <!-- BigDayBot -->
+          <div class="product-card glass-card rounded-3xl overflow-hidden">
+            <div class="h-2 bg-gradient-to-r from-pink-500 to-rose-500"></div>
+            <div class="p-8">
+              <div class="flex items-center justify-between mb-6">
+                <div class="w-14 h-14 rounded-2xl bg-pink-500/10 border border-pink-500/20 flex items-center justify-center">
+                  <i data-lucide="cake" class="w-7 h-7 text-pink-400"></i>
+                </div>
+                <span class="px-3 py-1 rounded-full bg-pink-500/10 text-pink-400 text-xs font-bold">NURTURE</span>
+              </div>
+              <h3 class="text-2xl font-bold text-white mb-3">BigDayBot</h3>
+              <p class="text-slate-400 mb-6 leading-relaxed">
+                Drip campaigns for Anniversaries, Birthdays, and special occasions. Stay top-of-mind with clients on the days that matter most.
+              </p>
+              <ul class="space-y-3 mb-8">
+                <li class="flex items-center gap-3 text-sm text-slate-300">
+                  <i data-lucide="check" class="w-4 h-4 text-pink-400"></i> Home Anniversary Campaigns
+                </li>
+                <li class="flex items-center gap-3 text-sm text-slate-300">
+                  <i data-lucide="check" class="w-4 h-4 text-pink-400"></i> Birthday Automations
+                </li>
+                <li class="flex items-center gap-3 text-sm text-slate-300">
+                  <i data-lucide="check" class="w-4 h-4 text-pink-400"></i> Holiday Drip Sequences
+                </li>
+              </ul>
+              <div class="flex items-center justify-between pt-6 border-t border-white/5">
+                <div>
+                  <span class="text-3xl font-bold text-white">$12</span>
+                  <span class="text-slate-500">/mo</span>
+                </div>
+                <a href="#" class="px-6 py-2 rounded-lg bg-pink-500 text-white font-semibold text-sm hover:bg-pink-400 transition-colors">Add to Stack</a>
+              </div>
+            </div>
+          </div>
+
+          <!-- Bundle Card -->
+          <div class="product-card rounded-3xl overflow-hidden border-2 border-emerald-500/30 bg-gradient-to-b from-emerald-500/10 to-transparent relative">
+            <div class="absolute top-4 right-4 px-3 py-1 rounded-full bg-emerald-500 text-white text-xs font-bold price-glow">SAVE 30%</div>
+            <div class="p-8">
+              <div class="flex items-center justify-between mb-6">
+                <div class="w-14 h-14 rounded-2xl bg-emerald-500/20 border border-emerald-500/30 flex items-center justify-center">
+                  <i data-lucide="package" class="w-7 h-7 text-emerald-400"></i>
+                </div>
+              </div>
+              <h3 class="text-2xl font-bold text-white mb-3">Full Stack Bundle</h3>
+              <p class="text-slate-400 mb-6 leading-relaxed">
+                Get all 5 automations at a massive discount. The complete toolkit for agents who want it all.
+              </p>
+              <div class="flex flex-wrap gap-2 mb-6">
+                <span class="px-2 py-1 rounded bg-sky-500/20 text-sky-400 text-xs">OpenHouse</span>
+                <span class="px-2 py-1 rounded bg-orange-500/20 text-orange-400 text-xs">LeadRevive</span>
+                <span class="px-2 py-1 rounded bg-emerald-500/20 text-emerald-400 text-xs">TouchBase</span>
+                <span class="px-2 py-1 rounded bg-purple-500/20 text-purple-400 text-xs">ReviewDrip</span>
+                <span class="px-2 py-1 rounded bg-pink-500/20 text-pink-400 text-xs">BigDayBot</span>
+              </div>
+              <div class="flex items-center justify-between pt-6 border-t border-white/10">
+                <div>
+                  <span class="text-sm text-slate-500 line-through">$98/mo</span>
+                  <div>
+                    <span class="text-3xl font-bold text-emerald-400">$69</span>
+                    <span class="text-slate-500">/mo</span>
+                  </div>
+                </div>
+                <a href="#" class="px-6 py-2 rounded-lg bg-emerald-500 text-white font-semibold text-sm hover:bg-emerald-400 transition-colors">Get Full Stack</a>
+              </div>
+            </div>
+          </div>
+
+        </div>
       </div>
     </section>
 
     <!-- How it Works -->
-    <section id="how-it-works" class="py-24 relative overflow-hidden z-10">
+    <section id="how-it-works" class="py-24 bg-[#0B0C10]/80 border-t border-white/5 backdrop-blur-md relative z-10">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         <div class="text-center mb-16">
-          <h2 class="text-3xl font-bold text-white mb-4">From new lead to front door</h2>
-          <p class="text-slate-400">The entire workflow is automated.</p>
+          <h2 class="text-3xl font-bold text-white mb-4">Build Your Stack in 3 Steps</h2>
+          <p class="text-slate-400">Simple setup. Immediate results.</p>
         </div>
 
-        <div class="relative grid md:grid-cols-4 gap-8">
+        <div class="relative grid md:grid-cols-3 gap-8 max-w-4xl mx-auto">
           <div class="hidden md:block absolute top-12 left-0 w-full h-0.5 bg-gradient-to-r from-transparent via-white/10 to-transparent -z-10"></div>
-          
+
           <!-- Step 1 -->
-          <div class="glass-card p-6 rounded-2xl relative hover:-translate-y-1 transition-transform duration-300">
-            <div class="w-10 h-10 rounded-full bg-[#050507] border border-white/10 flex items-center justify-center text-white font-bold mb-4 shadow-xl">1</div>
-            <h3 class="text-lg font-semibold text-white mb-2">Input Criteria</h3>
-            <p class="text-sm text-slate-400">Enter your client's budget, location, and non-negotiables. Or just forward their "wishlist" email.</p>
+          <div class="glass-card p-6 rounded-2xl relative hover:-translate-y-1 transition-transform duration-300 text-center">
+            <div class="w-12 h-12 mx-auto rounded-full bg-[#050507] border border-white/10 flex items-center justify-center text-white font-bold mb-4 shadow-xl">1</div>
+            <h3 class="text-lg font-semibold text-white mb-2">Pick Your Automations</h3>
+            <p class="text-sm text-slate-400">Choose the tools that match your workflow. Start with one or grab the full bundle.</p>
           </div>
 
           <!-- Step 2 -->
-          <div class="glass-card p-6 rounded-2xl relative hover:-translate-y-1 transition-transform duration-300">
-            <div class="w-10 h-10 rounded-full bg-[#050507] border border-sky-500/30 text-sky-400 flex items-center justify-center font-bold mb-4 shadow-xl shadow-sky-900/20">2</div>
-            <h3 class="text-lg font-semibold text-white mb-2">AI Analysis</h3>
-            <p class="text-sm text-slate-400">We scrape the MLS. Our Computer Vision AI scans photos for defects (cracks, stains, mold) humans miss.</p>
+          <div class="glass-card p-6 rounded-2xl relative hover:-translate-y-1 transition-transform duration-300 text-center">
+            <div class="w-12 h-12 mx-auto rounded-full bg-[#050507] border border-sky-500/30 text-sky-400 flex items-center justify-center font-bold mb-4 shadow-xl shadow-sky-900/20">2</div>
+            <h3 class="text-lg font-semibold text-white mb-2">Connect Your Accounts</h3>
+            <p class="text-sm text-slate-400">Link your MLS, email, and calendar. Setup takes less than 10 minutes.</p>
           </div>
 
           <!-- Step 3 -->
-          <div class="glass-card p-6 rounded-2xl relative hover:-translate-y-1 transition-transform duration-300">
-            <div class="w-10 h-10 rounded-full bg-[#050507] border border-white/10 flex items-center justify-center text-white font-bold mb-4 shadow-xl">3</div>
-            <h3 class="text-lg font-semibold text-white mb-2">Client Selection</h3>
-            <p class="text-sm text-slate-400">Clients receive a beautiful, interactive digest of vetted homes. They click "Request Showing" on favorites.</p>
-          </div>
-
-          <!-- Step 4 -->
-          <div class="glass-card p-6 rounded-2xl relative hover:-translate-y-1 transition-transform duration-300">
-            <div class="w-10 h-10 rounded-full bg-[#050507] border border-emerald-500/30 text-emerald-400 flex items-center justify-center font-bold mb-4 shadow-xl shadow-emerald-900/20">4</div>
-            <h3 class="text-lg font-semibold text-white mb-2">Auto-Book &amp; Sync</h3>
-            <p class="text-sm text-slate-400">We interface with ShowingTime to book slots instantly and sync the route to your calendar.</p>
+          <div class="glass-card p-6 rounded-2xl relative hover:-translate-y-1 transition-transform duration-300 text-center">
+            <div class="w-12 h-12 mx-auto rounded-full bg-[#050507] border border-emerald-500/30 text-emerald-400 flex items-center justify-center font-bold mb-4 shadow-xl shadow-emerald-900/20">3</div>
+            <h3 class="text-lg font-semibold text-white mb-2">Watch It Work</h3>
+            <p class="text-sm text-slate-400">Your automations run 24/7. Track results in your dashboard and reclaim your time.</p>
           </div>
         </div>
       </div>
     </section>
 
-    <!-- Features Deep Dive -->
-    <section id="features" class="py-24 bg-[#0B0C10]/80 border-t border-white/5 backdrop-blur-md relative z-10">
-      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        
-        <!-- Feature 1: AI Vision -->
-        <div class="grid lg:grid-cols-2 gap-16 items-center mb-24">
-          <div class="order-2 lg:order-1 relative rounded-2xl border border-white/10 overflow-hidden shadow-2xl group bg-black/50">
-             <div class="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent z-10"></div>
-             <img src="https://images.unsplash.com/photo-1628624747186-a941c725611b?auto=format&amp;fit=crop&amp;q=80&amp;w=1000" alt="Home interior showing potential issue" class="w-full h-auto opacity-60">
-             
-             <!-- Animated Bounding Box -->
-             <div class="absolute top-[30%] left-[45%] w-32 h-32 border-2 border-red-500 rounded animate-pulse z-20 shadow-[0_0_20px_rgba(239,68,68,0.3)]">
-               <div class="absolute -top-3 right-0 bg-red-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded shadow-sm">CEILING STAIN</div>
-             </div>
-
-             <div class="absolute bottom-6 left-6 z-20 max-w-sm">
-               <div class="flex items-center gap-2 mb-2 text-red-400 font-semibold">
-                 <i data-lucide="eye" class="w-4 h-4"></i> AI Vision Detector
-               </div>
-               <p class="text-white text-sm drop-shadow-md">"Photo 12 indicates potential previous water damage on the living room ceiling. Recommend checking disclosure or physical inspection."</p>
-             </div>
-          </div>
-          <div class="order-1 lg:order-2">
-            <h2 class="text-3xl font-bold text-white mb-4">It sees what you miss.</h2>
-            <p class="text-lg text-slate-400 mb-6">
-              Listing agents are masters of angles. OpenHouse's computer vision analyzes every pixel of listing photos to flag deferred maintenance, structural cracks, and suspicious cropping before you waste gas driving there.
-            </p>
-            <ul class="space-y-3">
-              <li class="flex items-center gap-3 text-slate-300">
-                <i data-lucide="check" class="w-5 h-5 text-emerald-400"></i>
-                <span>Detects roof wear and foundation issues</span>
-              </li>
-              <li class="flex items-center gap-3 text-slate-300">
-                <i data-lucide="check" class="w-5 h-5 text-emerald-400"></i>
-                <span>Flags wide-angle distortion usage</span>
-              </li>
-              <li class="flex items-center gap-3 text-slate-300">
-                <i data-lucide="check" class="w-5 h-5 text-emerald-400"></i>
-                <span>Identifies neighborhood "context" clues</span>
-              </li>
-            </ul>
-          </div>
-        </div>
-
-        <!-- Feature 2: Personalized Writeups -->
-        <div class="grid lg:grid-cols-2 gap-16 items-center">
-          <div>
-            <h2 class="text-3xl font-bold text-white mb-4">Personalized, not generic.</h2>
-            <p class="text-lg text-slate-400 mb-6">
-              Clients ignore automated MLS feeds. OpenHouse writes a custom pitch for every property, explaining exactly why it fits their specific lifestyle needs.
-            </p>
-            <div class="flex flex-col gap-4">
-               <div class="p-4 rounded-xl border border-white/10 bg-white/5">
-                 <div class="text-xs text-slate-500 uppercase font-semibold mb-2">The Old Way</div>
-                 <p class="text-slate-400 italic">"Here is a list of 3 properties that match your search."</p>
-               </div>
-               <div class="p-4 rounded-xl border border-emerald-500/20 bg-emerald-500/5 relative overflow-hidden backdrop-blur-sm">
-                 <div class="absolute top-0 right-0 p-2 opacity-20"><i data-lucide="sparkles" class="w-8 h-8 text-emerald-400"></i></div>
-                 <div class="text-xs text-emerald-400 uppercase font-semibold mb-2">The OpenHouse Way</div>
-                 <p class="text-slate-200">"Hey Sarah, check out 2401 Eva St. It has that south-facing art studio space you wanted, and it's 2 blocks from the elementary school."</p>
-               </div>
-            </div>
-          </div>
-          <div class="relative pl-10">
-            <!-- Simulated Chat/Email Interface -->
-            <div class="rounded-2xl border border-white/10 bg-[#0A0A0F] p-2 shadow-2xl relative z-10">
-              <div class="rounded-xl bg-white/5 p-6 space-y-4">
-                 <div class="flex items-start gap-4">
-                   <div class="w-10 h-10 rounded-full bg-slate-700 shrink-0"></div>
-                   <div class="flex-1 space-y-2">
-                     <div class="h-4 bg-slate-700 rounded w-1/4"></div>
-                     <div class="h-3 bg-slate-800 rounded w-3/4"></div>
-                     <div class="h-3 bg-slate-800 rounded w-full"></div>
-                     <div class="h-3 bg-slate-800 rounded w-5/6"></div>
-                   </div>
-                 </div>
-                 <div class="flex justify-end">
-                   <button class="bg-blue-600 text-white text-sm font-medium px-4 py-2 rounded-lg flex items-center gap-2 shadow-lg shadow-blue-900/20 hover:bg-blue-500 transition-colors">
-                     <i data-lucide="calendar" class="w-4 h-4"></i> Book Showing (1-Click)
-                   </button>
-                 </div>
-              </div>
-              <!-- Floating Integration Badge -->
-              <div class="absolute -bottom-6 -left-6 bg-white text-black p-4 rounded-xl shadow-[0_10px_40px_-10px_rgba(0,0,0,0.5)] border border-white/20 flex items-center gap-3 animate-bounce-slow">
-                <div class="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center text-white shadow-md">
-                  <i data-lucide="calendar-check" class="w-6 h-6"></i>
-                </div>
-                <div>
-                  <div class="text-xs font-bold uppercase tracking-wide text-slate-500">Integration</div>
-                  <div class="font-bold">ShowingTime</div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-      </div>
-    </section>
-
-    <!-- Pricing -->
+    <!-- Pricing Summary -->
     <section id="pricing" class="py-24 relative z-10">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="text-center mb-16">
-          <h2 class="text-3xl font-bold text-white mb-4">Pay for results, not leads</h2>
-          <p class="text-slate-400">Competitive pricing that scales with your business.</p>
+          <h2 class="text-3xl font-bold text-white mb-4">Transparent, Modular Pricing</h2>
+          <p class="text-slate-400">Only pay for what you use. Add or remove automations anytime.</p>
         </div>
 
-        <div class="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
-          <!-- Individual -->
-          <div class="glass-card p-8 rounded-3xl flex flex-col hover:-translate-y-1 transition-transform duration-300">
-            <h3 class="text-xl font-semibold text-white mb-2">Individual Agent</h3>
-            <p class="text-sm text-slate-400 mb-6">For the solo top producer.</p>
-            <div class="flex items-baseline gap-1 mb-6">
-              <span class="text-4xl font-bold text-white">$49.99</span>
-              <span class="text-slate-500">/month</span>
-            </div>
-            <ul class="space-y-4 mb-8 flex-1">
-              <li class="flex items-center gap-3 text-sm text-slate-300">
-                <i data-lucide="check" class="w-4 h-4 text-emerald-400"></i> 5 Active Clients included
-              </li>
-              <li class="flex items-center gap-3 text-sm text-slate-300">
-                <i data-lucide="check" class="w-4 h-4 text-emerald-400"></i> Unlimited AI Property Analysis
-              </li>
-              <li class="flex items-center gap-3 text-sm text-slate-300">
-                <i data-lucide="check" class="w-4 h-4 text-emerald-400"></i> ShowingTime Auto-Booking
-              </li>
-              <li class="flex items-center gap-3 text-sm text-slate-300">
-                <i data-lucide="plus" class="w-4 h-4 text-slate-500"></i> $4.99 per additional client
-              </li>
-            </ul>
-            <a href="#" class="w-full py-3 rounded-xl bg-white text-black font-semibold text-center hover:bg-slate-200 transition-colors shadow-lg shadow-white/10">Start 14-Day Free Trial</a>
-            <p class="text-xs text-center text-slate-500 mt-4">Cheaper than kvCORE &amp; CINC</p>
-          </div>
+        <div class="max-w-3xl mx-auto">
+          <!-- Pricing Table -->
+          <div class="glass-card rounded-3xl overflow-hidden">
+            <div class="p-8">
+              <div class="space-y-4">
+                <div class="flex items-center justify-between py-4 border-b border-white/5">
+                  <div class="flex items-center gap-4">
+                    <div class="w-10 h-10 rounded-xl bg-sky-500/10 flex items-center justify-center">
+                      <i data-lucide="home" class="w-5 h-5 text-sky-400"></i>
+                    </div>
+                    <div>
+                      <div class="font-semibold text-white">OpenHouse</div>
+                      <div class="text-xs text-slate-400">Showing Automation</div>
+                    </div>
+                  </div>
+                  <span class="text-xl font-bold text-white">$29/mo</span>
+                </div>
 
-          <!-- Brokerage -->
-          <div class="p-8 rounded-3xl border border-white/10 bg-gradient-to-b from-white/5 to-transparent flex flex-col relative overflow-hidden backdrop-blur-md">
-            <div class="absolute top-0 right-0 bg-emerald-500/20 text-emerald-400 text-xs font-bold px-3 py-1 rounded-bl-xl border-l border-b border-emerald-500/20">BEST VALUE</div>
-            <h3 class="text-xl font-semibold text-white mb-2">Brokerage Team</h3>
-            <p class="text-sm text-slate-400 mb-6">Power up your entire office.</p>
-            <div class="flex items-baseline gap-1 mb-6">
-              <span class="text-4xl font-bold text-white">$39.99</span>
-              <span class="text-slate-500">/agent/mo</span>
+                <div class="flex items-center justify-between py-4 border-b border-white/5">
+                  <div class="flex items-center gap-4">
+                    <div class="w-10 h-10 rounded-xl bg-orange-500/10 flex items-center justify-center">
+                      <i data-lucide="flame" class="w-5 h-5 text-orange-400"></i>
+                    </div>
+                    <div>
+                      <div class="font-semibold text-white">LeadRevive</div>
+                      <div class="text-xs text-slate-400">Cold Lead Re-engagement</div>
+                    </div>
+                  </div>
+                  <span class="text-xl font-bold text-white">$19/mo</span>
+                </div>
+
+                <div class="flex items-center justify-between py-4 border-b border-white/5">
+                  <div class="flex items-center gap-4">
+                    <div class="w-10 h-10 rounded-xl bg-emerald-500/10 flex items-center justify-center">
+                      <i data-lucide="trending-up" class="w-5 h-5 text-emerald-400"></i>
+                    </div>
+                    <div>
+                      <div class="font-semibold text-white">TouchBase</div>
+                      <div class="text-xs text-slate-400">Seller CMA Automation</div>
+                    </div>
+                  </div>
+                  <span class="text-xl font-bold text-white">$24/mo</span>
+                </div>
+
+                <div class="flex items-center justify-between py-4 border-b border-white/5">
+                  <div class="flex items-center gap-4">
+                    <div class="w-10 h-10 rounded-xl bg-purple-500/10 flex items-center justify-center">
+                      <i data-lucide="star" class="w-5 h-5 text-purple-400"></i>
+                    </div>
+                    <div>
+                      <div class="font-semibold text-white">ReviewDrip</div>
+                      <div class="text-xs text-slate-400">Google Review Campaigns</div>
+                    </div>
+                  </div>
+                  <span class="text-xl font-bold text-white">$14/mo</span>
+                </div>
+
+                <div class="flex items-center justify-between py-4 border-b border-white/5">
+                  <div class="flex items-center gap-4">
+                    <div class="w-10 h-10 rounded-xl bg-pink-500/10 flex items-center justify-center">
+                      <i data-lucide="cake" class="w-5 h-5 text-pink-400"></i>
+                    </div>
+                    <div>
+                      <div class="font-semibold text-white">BigDayBot</div>
+                      <div class="text-xs text-slate-400">Anniversary & Birthday Drips</div>
+                    </div>
+                  </div>
+                  <span class="text-xl font-bold text-white">$12/mo</span>
+                </div>
+              </div>
+
+              <div class="mt-8 pt-8 border-t border-white/10">
+                <div class="flex items-center justify-between mb-6">
+                  <div>
+                    <div class="text-lg font-semibold text-white">Full Stack Bundle</div>
+                    <div class="text-sm text-emerald-400">All 5 automations included</div>
+                  </div>
+                  <div class="text-right">
+                    <span class="text-sm text-slate-500 line-through">$98/mo</span>
+                    <div class="text-2xl font-bold text-emerald-400">$69/mo</div>
+                  </div>
+                </div>
+                <a href="#" class="block w-full py-4 rounded-xl bg-white text-black font-semibold text-center hover:bg-slate-200 transition-colors shadow-lg shadow-white/10">
+                  Start 14-Day Free Trial
+                </a>
+                <p class="text-xs text-center text-slate-500 mt-4">No credit card required • Cancel anytime</p>
+              </div>
             </div>
-            <ul class="space-y-4 mb-8 flex-1">
-              <li class="flex items-center gap-3 text-sm text-slate-300">
-                <i data-lucide="users" class="w-4 h-4 text-emerald-400"></i> Minimum 5 agents
-              </li>
-              <li class="flex items-center gap-3 text-sm text-slate-300">
-                <i data-lucide="check" class="w-4 h-4 text-emerald-400"></i> Admin Dashboard &amp; Analytics
-              </li>
-              <li class="flex items-center gap-3 text-sm text-slate-300">
-                <i data-lucide="check" class="w-4 h-4 text-emerald-400"></i> Team Calendar Sync
-              </li>
-              <li class="flex items-center gap-3 text-sm text-slate-300">
-                <i data-lucide="check" class="w-4 h-4 text-emerald-400"></i> Volume discounts available
-              </li>
-            </ul>
-            <a href="#" class="w-full py-3 rounded-xl border border-white/20 text-white font-semibold text-center hover:bg-white/5 transition-colors">Contact Sales</a>
           </div>
         </div>
       </div>
@@ -553,15 +536,24 @@
     <section class="py-24 bg-[#0B0C10]/80 border-t border-white/5 backdrop-blur-md relative z-10">
       <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
         <h2 class="text-2xl font-bold text-white mb-8 text-center">Frequently Asked Questions</h2>
-        
+
         <div class="space-y-4">
           <details class="group glass-card rounded-xl">
             <summary class="flex justify-between items-center font-medium cursor-pointer list-none p-4 text-white">
-              <span>Does it work with my MLS?</span>
+              <span>Can I add or remove automations anytime?</span>
               <span class="transition group-open:rotate-180"><i data-lucide="chevron-down" class="w-4 h-4"></i></span>
             </summary>
             <div class="text-slate-400 mt-0 px-4 pb-4 leading-relaxed text-sm">
-              Yes. OpenHouse integrates with 98% of US MLS providers via RETS/Reso Web API integration.
+              Yes! Your subscription is completely flexible. Add new automations as your business grows or remove ones you no longer need. Changes take effect on your next billing cycle.
+            </div>
+          </details>
+          <details class="group glass-card rounded-xl">
+            <summary class="flex justify-between items-center font-medium cursor-pointer list-none p-4 text-white">
+              <span>Does OpenHouse work with my MLS?</span>
+              <span class="transition group-open:rotate-180"><i data-lucide="chevron-down" class="w-4 h-4"></i></span>
+            </summary>
+            <div class="text-slate-400 mt-0 px-4 pb-4 leading-relaxed text-sm">
+              Yes. OpenHouse integrates with 98% of US MLS providers via RETS/RESO Web API integration.
             </div>
           </details>
           <details class="group glass-card rounded-xl">
@@ -570,16 +562,16 @@
               <span class="transition group-open:rotate-180"><i data-lucide="chevron-down" class="w-4 h-4"></i></span>
             </summary>
             <div class="text-slate-400 mt-0 px-4 pb-4 leading-relaxed text-sm">
-              Absolutely. We use bank-level encryption (AES-256) and never sell your client data to other agents or lenders. Your leads stay yours.
+              Absolutely. We use bank-level encryption (AES-256) and never sell your client data. Your leads stay yours.
             </div>
           </details>
           <details class="group glass-card rounded-xl">
             <summary class="flex justify-between items-center font-medium cursor-pointer list-none p-4 text-white">
-              <span>Can I override the AI recommendations?</span>
+              <span>Do I get a discount for the bundle?</span>
               <span class="transition group-open:rotate-180"><i data-lucide="chevron-down" class="w-4 h-4"></i></span>
             </summary>
             <div class="text-slate-400 mt-0 px-4 pb-4 leading-relaxed text-sm">
-              Yes. You have full control. You can set the system to "Auto-Send" or "Review First" mode depending on your comfort level.
+              Yes! The Full Stack Bundle saves you 30% compared to purchasing each automation individually. That's $69/mo instead of $98/mo.
             </div>
           </details>
         </div>
@@ -589,19 +581,19 @@
     <!-- Final CTA -->
     <section class="py-32 relative overflow-hidden z-10">
       <div class="max-w-4xl mx-auto px-4 text-center relative z-10">
-        <h2 class="text-4xl font-bold text-white mb-6">Ready to reclaim your weekends?</h2>
+        <h2 class="text-4xl font-bold text-white mb-6">Ready to automate your business?</h2>
         <p class="text-lg text-slate-400 mb-10">
-          Join 2,000+ tech-forward agents who have automated their showing workflow.
+          Join thousands of agents who've built their perfect automation stack with RealtorFlow.
         </p>
         <div class="flex flex-col sm:flex-row justify-center gap-4">
           <a href="#" class="h-14 px-8 rounded-full bg-white text-black font-bold flex items-center justify-center gap-2 hover:bg-slate-200 transition-colors text-lg shadow-[0_0_30px_rgba(255,255,255,0.3)]">
             Start Free Trial
           </a>
-          <a href="#" class="h-14 px-8 rounded-full border border-white/20 text-white font-medium flex items-center justify-center hover:bg-white/5 transition-colors text-lg backdrop-blur-sm">
-            Book a Demo
+          <a href="#automations" class="h-14 px-8 rounded-full border border-white/20 text-white font-medium flex items-center justify-center hover:bg-white/5 transition-colors text-lg backdrop-blur-sm">
+            Explore Automations
           </a>
         </div>
-        <p class="mt-6 text-sm text-slate-500">No credit card required for trial • Cancel anytime</p>
+        <p class="mt-6 text-sm text-slate-500">No credit card required • Cancel anytime</p>
       </div>
     </section>
 
@@ -611,19 +603,21 @@
         <div class="grid grid-cols-2 md:grid-cols-4 gap-8 mb-12">
           <div class="col-span-2 md:col-span-1">
             <div class="flex items-center gap-2 mb-4">
-              <i data-lucide="home" class="w-5 h-5 text-white"></i>
-              <span class="text-lg font-bold text-white">OpenHouse</span>
+              <i data-lucide="zap" class="w-5 h-5 text-emerald-400"></i>
+              <span class="text-lg font-bold text-white">RealtorFlow</span>
             </div>
             <p class="text-sm text-slate-500">
-              The intelligent showing assistant for the modern real estate professional.
+              The automation marketplace for modern real estate professionals.
             </p>
           </div>
           <div>
-            <h4 class="text-white font-semibold mb-4">Product</h4>
+            <h4 class="text-white font-semibold mb-4">Automations</h4>
             <ul class="space-y-2 text-sm text-slate-400">
-              <li><a href="#" class="hover:text-white">Features</a></li>
-              <li><a href="#" class="hover:text-white">Pricing</a></li>
-              <li><a href="#" class="hover:text-white">Success Stories</a></li>
+              <li><a href="#" class="hover:text-white">OpenHouse</a></li>
+              <li><a href="#" class="hover:text-white">LeadRevive</a></li>
+              <li><a href="#" class="hover:text-white">TouchBase</a></li>
+              <li><a href="#" class="hover:text-white">ReviewDrip</a></li>
+              <li><a href="#" class="hover:text-white">BigDayBot</a></li>
             </ul>
           </div>
           <div>
@@ -644,7 +638,7 @@
           </div>
         </div>
         <div class="pt-8 border-t border-white/5 text-center text-sm text-slate-600">
-          © 2025 OpenHouse AI Technologies Inc. All rights reserved.
+          © 2025 RealtorFlow Technologies Inc. All rights reserved.
         </div>
       </div>
     </footer>

@@ -2,15 +2,46 @@ import { NextRequest, NextResponse } from "next/server";
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
 import {
-  createBridgeClient,
-  createDemoBridgeClient,
-  BridgeListing,
-  convertBridgeListingToProperty,
-} from "@/lib/services/bridge";
+  createSimplyRetsClient,
+  createDemoSimplyRetsClient,
+  NormalizedProperty,
+} from "@/lib/services/simplyrets";
 import { analyzeProperty, PropertyForAnalysis } from "@/lib/services/ai-analysis";
 
 /**
- * Import listings by ListingKey
+ * Convert SimplyRETS normalized property to database format
+ */
+function convertToDbProperty(listing: NormalizedProperty, agentId: string) {
+  return {
+    agent_id: agentId,
+    mls_id: listing.mls_id,
+    address: listing.address,
+    city: listing.city,
+    state: listing.state,
+    zip: listing.zip,
+    price: listing.price,
+    beds: listing.beds,
+    baths: listing.baths,
+    sqft: listing.sqft,
+    lot_size: listing.lot_size,
+    year_built: listing.year_built,
+    property_type: listing.property_type,
+    status: "active",
+    description: listing.description,
+    photos: listing.photos,
+    highlights: listing.highlights,
+    listing_url: listing.listing_url,
+    listing_agent_name: listing.listing_agent,
+    listing_office_name: listing.listing_office,
+    latitude: listing.latitude,
+    longitude: listing.longitude,
+    virtual_tour_url: listing.virtual_tour_url,
+    days_on_market: listing.days_on_market,
+  };
+}
+
+/**
+ * Import listings by MLS ID
  */
 export async function POST(request: NextRequest) {
   try {
@@ -42,41 +73,37 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { listingKeys } = body as { listingKeys: string[] };
+    const { mlsIds } = body as { mlsIds: string[] };
 
-    if (!listingKeys || !Array.isArray(listingKeys) || listingKeys.length === 0) {
+    if (!mlsIds || !Array.isArray(mlsIds) || mlsIds.length === 0) {
       return NextResponse.json(
-        { error: "listingKeys array is required" },
+        { error: "mlsIds array is required" },
         { status: 400 }
       );
     }
 
-    if (listingKeys.length > 20) {
+    if (mlsIds.length > 20) {
       return NextResponse.json(
         { error: "Maximum 20 listings can be imported at once" },
         { status: 400 }
       );
     }
 
-    // Use demo client if no credentials configured
-    let client;
-    try {
-      client = createBridgeClient();
-    } catch {
-      client = createDemoBridgeClient();
-    }
+    // Use real client if credentials configured, otherwise demo
+    const client = createSimplyRetsClient() || createDemoSimplyRetsClient();
 
-    // Fetch listings from Bridge API
-    const listings: BridgeListing[] = [];
-    const errors: { listingKey: string; error: string }[] = [];
+    // Fetch listings from SimplyRETS
+    const listings: NormalizedProperty[] = [];
+    const errors: { mlsId: string; error: string }[] = [];
 
-    for (const listingKey of listingKeys) {
+    for (const mlsId of mlsIds) {
       try {
-        const listing = await client.getProperty(listingKey);
-        listings.push(listing);
+        const rawListing = await client.getListing(mlsId);
+        const normalized = client.normalizeListing(rawListing);
+        listings.push(normalized);
       } catch (error) {
         errors.push({
-          listingKey,
+          mlsId,
           error: error instanceof Error ? error.message : "Failed to fetch listing",
         });
       }
@@ -90,7 +117,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Check for existing properties with same MLS IDs
-    const mlsIdsToCheck = listings.map((l) => l.ListingId || l.ListingKey);
+    const mlsIdsToCheck = listings.map((l) => l.mls_id);
     const { data: existingProperties } = await supabase
       .from("properties")
       .select("mls_id")
@@ -100,9 +127,7 @@ export async function POST(request: NextRequest) {
     const existingMlsIds = new Set(existingProperties?.map((p) => p.mls_id) || []);
 
     // Filter out already imported listings
-    const newListings = listings.filter(
-      (l) => !existingMlsIds.has(l.ListingId || l.ListingKey)
-    );
+    const newListings = listings.filter((l) => !existingMlsIds.has(l.mls_id));
 
     if (newListings.length === 0) {
       return NextResponse.json({
@@ -115,7 +140,7 @@ export async function POST(request: NextRequest) {
 
     // Convert and insert properties
     const properties = newListings.map((listing) =>
-      convertBridgeListingToProperty(listing, user.id)
+      convertToDbProperty(listing, user.id)
     );
 
     const { data: insertedProperties, error: insertError } = await supabase
@@ -129,7 +154,6 @@ export async function POST(request: NextRequest) {
 
     // Trigger background AI analysis for imported properties (non-blocking)
     if (insertedProperties && insertedProperties.length > 0) {
-      // Run analysis in background without awaiting
       Promise.all(
         insertedProperties.map(async (prop) => {
           try {
@@ -146,13 +170,12 @@ export async function POST(request: NextRequest) {
               year_built: prop.year_built,
               property_type: prop.property_type,
               description: prop.description,
-              features: prop.features,
+              features: prop.highlights,
               listing_agent_name: prop.listing_agent_name,
             };
 
             const analysis = await analyzeProperty(propertyData);
 
-            // Update property with analysis
             await supabase
               .from("properties")
               .update({
@@ -188,7 +211,7 @@ export async function POST(request: NextRequest) {
 }
 
 /**
- * Bulk import from search results (import directly from listing data)
+ * Bulk import from search results (import directly from normalized listing data)
  */
 export async function PUT(request: NextRequest) {
   try {
@@ -220,7 +243,7 @@ export async function PUT(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { listings } = body as { listings: BridgeListing[] };
+    const { listings } = body as { listings: NormalizedProperty[] };
 
     if (!listings || !Array.isArray(listings) || listings.length === 0) {
       return NextResponse.json(
@@ -237,7 +260,7 @@ export async function PUT(request: NextRequest) {
     }
 
     // Check for existing properties with same MLS IDs
-    const mlsIdsToCheck = listings.map((l) => l.ListingId || l.ListingKey);
+    const mlsIdsToCheck = listings.map((l) => l.mls_id);
     const { data: existingProperties } = await supabase
       .from("properties")
       .select("mls_id")
@@ -247,9 +270,7 @@ export async function PUT(request: NextRequest) {
     const existingMlsIds = new Set(existingProperties?.map((p) => p.mls_id) || []);
 
     // Filter out already imported listings
-    const newListings = listings.filter(
-      (l) => !existingMlsIds.has(l.ListingId || l.ListingKey)
-    );
+    const newListings = listings.filter((l) => !existingMlsIds.has(l.mls_id));
 
     if (newListings.length === 0) {
       return NextResponse.json({
@@ -261,7 +282,7 @@ export async function PUT(request: NextRequest) {
 
     // Convert and insert properties
     const properties = newListings.map((listing) =>
-      convertBridgeListingToProperty(listing, user.id)
+      convertToDbProperty(listing, user.id)
     );
 
     const { data: insertedProperties, error: insertError } = await supabase
@@ -291,7 +312,7 @@ export async function PUT(request: NextRequest) {
               year_built: prop.year_built,
               property_type: prop.property_type,
               description: prop.description,
-              features: prop.features,
+              features: prop.highlights,
               listing_agent_name: prop.listing_agent_name,
             };
 
